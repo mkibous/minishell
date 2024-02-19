@@ -1,6 +1,7 @@
 SRCS = main.c
 CC = cc
 CFLAGS = -Wall -Wextra 
+FLAGS = -lreadline
 RM = rm -f
 NAME = minishell
 LIBFT = libft/libft.a
@@ -10,7 +11,7 @@ OBJ = $(SRCS:.c=.o)
 all: $(NAME)
 
 $(NAME): $(OBJ) $(LIBFT) $(PRINT)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) $(LIBFT) $(PRINT)
+	$(CC) $(CFLAGS) $(FLAGS) $(OBJ) -o $(NAME) $(LIBFT) $(PRINT)
 
 $(LIBFT): ./libft/Makefile
 	cd libft && make
