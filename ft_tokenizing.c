@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/20 18:35:28 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/20 21:49:11 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,15 +31,15 @@ int len (char *str)
 
 	if(str[i] == '$')
 		i++;
-	if(str[i] && (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || str[i] == '|')) //////////////////////// handle < or > and << >> 
+	if(str[i] && (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || str[i] == '|' || (str[i] == '>' && str[i + 1] != '>') || (str[i] == '<' && str[i + 1] != '<'))) //handle < or > and << >> 
 		i++;
-	else if((str[i] && str[i+1] && str[i] == '\\'))
+	else if(str[i] && str[i+1] && (str[i] == '\\' || (str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<')))
 		i = 2;
 	else 
 		while (str[i])
 		{
 			if(str[i] == ' ' || str[i] == '\'' || str[i] == '"'
-					|| (str[i] == '\\' && str[i+1]) || str[i] == '$' || str[i] == '|')
+					|| (str[i] == '\\' && str[i+1]) || str[i] == '$' || str[i] == '|' || str[i] == '>' || str[i] == '<')
 				break;
 			i++;
 		}
@@ -66,9 +66,10 @@ int ft_listing (char *str, t_elem **elem)
 void ft_printlist(t_elem *elem)
 {
 	char *str;
-	ft_printf("*************************************************************\n");
-    ft_printf("*  content     *    len       *   state      *    token     *\n");
-    ft_printf("*************************************************************\n");
+	char *token;
+	ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
+    ft_printf("✥  content     ✥    len       ✥   state      ✥    token  ✥\n");
+    ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
 	while (elem)
 	{
 	if(elem->state == 0 )
@@ -77,9 +78,41 @@ void ft_printlist(t_elem *elem)
 		str = "IN_QUOTE";
 	else
 		str = "GENERAL";
-	ft_printf("*              *              *              *              *\n");
-	ft_printf("*  '%s'        *    %d        *   %s         *    token     *\n", elem->content, elem->len, str);
-	ft_printf("*************************************************************\n");
+	if (elem->type == WHITE_SPACE)
+		token = "WHITE_SPACE";
+	else if(elem->type == NEW_LINE)
+		token = "NEW_LINE";
+	else if(elem->type == QOUTE)
+		token = "QOUTE";
+	else if (elem->type == DOUBLE_QUOTE)
+		token = "DOUBLE_QUOTE";
+	else if (elem->type == ESCAPE)
+		token = "ESCAPE";
+	else if (elem->type == ENV)
+		token = "ENV";
+	else if(elem->type == PIPE_LINE)
+		token = "PIPE_LINE";
+	else if(elem->type == REDIR_IN)
+		token = "REDIR_IN";
+	else if(elem->type == REDIR_OUT)
+		token = "REDIR_OUT";
+	else if(elem->type == DREDIR_OUT)
+		token = "DREDIR_OUT";
+	else if(elem->type == HERE_DOC)
+		token = "HERE_DOC";
+	else if(elem->type == WORD)
+		token = "WORD";
+	ft_printf("✥              ✥              ✥              ✥           ✥\n");
+	ft_printf("✥  '%s'", elem->content);
+	int j = elem->len - 2;
+	while (j < 8)
+	{
+		ft_printf(" ");
+		j++;
+	}
+	
+	ft_printf("✥    %d         ✥   %s    ✥ %s     ✥\n", elem->len, str, token);
+	ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
 		elem = elem->next;
 	}
 }
@@ -95,8 +128,8 @@ void	ft_token(t_elem *elem)
 	// PIPE_LINE = '|',
 	// REDIR_IN = '<',
 	// REDIR_OUT = '>',
-	// HERE_DOC, 63
-	// DREDIR_OUT, 64
+	// HERE_DOC, 63 <<
+	// DREDIR_OUT, 64 >>
 	while (elem)
 	{
 		if (elem->content[0] == ' ')
@@ -105,7 +138,7 @@ void	ft_token(t_elem *elem)
 			elem->type = NEW_LINE;
 		else if(elem->content[0] == '\'' && elem->state == GENERAL)
 			elem->type = QOUTE;
-		else if (elem->content[0] == '\"' && elem->state == GENERAL)
+		else if (elem->content[0] == '"' && elem->state == GENERAL)
 			elem->type = DOUBLE_QUOTE;
 		else if (elem->content[0] == '\\' && elem->content[1] != 'n')
 			elem->type = ESCAPE;
@@ -113,7 +146,16 @@ void	ft_token(t_elem *elem)
 			elem->type = ENV;
 		else if(elem->content[0] == '|' && elem->state == GENERAL)
 			elem->type = PIPE_LINE;
-		else 
+		else if(elem->content[0] == '>' && elem->content[1] != '>')
+			elem->type = REDIR_OUT;
+		else if(elem->content[0] == '<' && elem->content[1] != '<')
+			elem->type = REDIR_IN;
+		else if(elem->content[0] == '>' && elem->content[1] == '>')
+			elem->type = DREDIR_OUT;
+		else if(elem->content[0] == '<' && elem->content[1] == '<')
+			elem->type = HERE_DOC;
+		else
+			elem->type = WORD;
 		elem = elem->next;
 	}
 	
@@ -160,7 +202,7 @@ void ft_tokenizing(char *line)
 		}
 		i++;
 	}
-	// ft_token(elem);
+	ft_token(elem);
 	ft_printlist(elem);
 	ft_readline();
 }

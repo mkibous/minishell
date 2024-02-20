@@ -20,7 +20,7 @@ typedef enum e_token
 	PIPE_LINE = '|',
 	REDIR_IN = '<',
 	REDIR_OUT = '>',
-	HERE_DOC,
+	HERE_DOC, //
 	DREDIR_OUT,
 } t_token;
 
