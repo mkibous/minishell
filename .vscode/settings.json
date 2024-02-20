@@ -5,7 +5,10 @@
         "algorithm": "c",
         "bitset": "c",
         "chrono": "c",
-        "unordered_map": "c"
+        "unordered_map": "c",
+        "locale": "c",
+        "string": "c",
+        "sstream": "c"
     },
     "git.ignoreLimitWarning": true
 }

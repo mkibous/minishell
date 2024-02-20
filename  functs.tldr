@@ -91,7 +91,7 @@
 				"x": 0,
 				"y": 0,
 				"w": 635,
-				"h": 825.8333129882812
+				"h": 459.1666564941406
 			},
 			"insets": [
 				false,
@@ -120,8 +120,8 @@
 			"typeName": "instance"
 		},
 		{
-			"x": 2693.4362557079003,
-			"y": -12033.84966035488,
+			"x": 3620.8579404102056,
+			"y": 5316.765768523466,
 			"z": 0.1,
 			"meta": {},
 			"id": "camera:page:page",
@@ -143,9 +143,9 @@
 		{
 			"id": "pointer:pointer",
 			"typeName": "pointer",
-			"x": 3107.279686674912,
-			"y": 14473.98637910488,
-			"lastActivityTimestamp": 1708371146260,
+			"x": -2349.503799174854,
+			"y": -3036.166861052763,
+			"lastActivityTimestamp": 1708417765991,
 			"meta": {}
 		},
 		{
@@ -3454,8 +3454,8 @@
 			"props": {
 				"color": "black",
 				"size": "xl",
-				"w": 1210.9609375,
-				"text": "function is used to handle signals like cont_c _d and\nothers signals",
+				"w": 1135.27734375,
+				"text": "function is used to handle signals like cont_c and\nothers signals",
 				"font": "draw",
 				"align": "start",
 				"autoSize": true,
@@ -8325,6 +8325,52 @@
 				"font": "draw"
 			},
 			"id": "shape:TZSKsFMq42rmzYhXPmgcG",
+			"typeName": "shape"
+		},
+		{
+			"x": -540.6908871875498,
+			"y": -2924.857260222685,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:IaKINDaAkoeFMrUJNSLV1",
+			"type": "text",
+			"props": {
+				"color": "black",
+				"size": "xl",
+				"w": 151.92446899414062,
+				"text": "enum :",
+				"font": "draw",
+				"align": "start",
+				"autoSize": true,
+				"scale": 4.653403485695495
+			},
+			"parentId": "page:page",
+			"index": "b6Q",
+			"typeName": "shape"
+		},
+		{
+			"x": -1081.6415097461436,
+			"y": -2596.5109467461225,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:RXOZcz0eZpvCA9kl2-QWb",
+			"type": "text",
+			"props": {
+				"color": "black",
+				"size": "xl",
+				"w": 1846.57275390625,
+				"text": " is a user-defined data type that consists of a set of named integer constants.\nEnumerations are used to define a collection of related values that can be\nrepresented as symbolic names rather than numerical values. This makes the code more readable and easier to understand",
+				"font": "draw",
+				"align": "start",
+				"autoSize": false,
+				"scale": 1
+			},
+			"parentId": "page:page",
+			"index": "b6R",
 			"typeName": "shape"
 		}
 	]

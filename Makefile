@@ -1,4 +1,4 @@
-SRCS = main.c
+SRCS = main.c ft_tokenizing.c lists.c
 CC = cc
 CFLAGS = -Wall -Wextra 
 FLAGS = -lreadline
