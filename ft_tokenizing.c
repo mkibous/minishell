@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/20 16:56:27 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/20 18:35:28 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,14 +29,17 @@ int len (char *str)
 {
 	int i = 0;
 
-	if(str[i] && (str[i] == ' ' || str[i] == '\'' || str[i] == '"'))
+	if(str[i] == '$')
 		i++;
-	else if((str[i] && str[i+1] && str[i] == '\\' && str[i+1] == 'n'))
-		i = 1;
+	if(str[i] && (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || str[i] == '|')) //////////////////////// handle < or > and << >> 
+		i++;
+	else if((str[i] && str[i+1] && str[i] == '\\'))
+		i = 2;
 	else 
 		while (str[i])
 		{
-			if(str[i] == ' ' || str[i] == '\'' || str[i] == '"' || (str[i] == '\\' && str[i+1] == 'n'))
+			if(str[i] == ' ' || str[i] == '\'' || str[i] == '"'
+					|| (str[i] == '\\' && str[i+1]) || str[i] == '$' || str[i] == '|')
 				break;
 			i++;
 		}
@@ -53,10 +56,7 @@ int ft_listing (char *str, t_elem **elem)
 		exit(1);
 	while (i < l)
 	{
-		if((str[i] && str[i+1] && str[i] == '\\' && str[i+1] == 'n'))
-			content[0] = '\n';
-		else
-			content[i] = str[i];
+		content[i] = str[i];
 		i++;
 	}
 	content[i] = '\0';
@@ -100,11 +100,20 @@ void	ft_token(t_elem *elem)
 	while (elem)
 	{
 		if (elem->content[0] == ' ')
-			elem->type = ' ';
+			elem->type = WHITE_SPACE;
 		else if(elem->content[0] == '\\' && elem->content[1] == 'n')
-			elem->type = '\n';
-		// else if (elem->content)
-		
+			elem->type = NEW_LINE;
+		else if(elem->content[0] == '\'' && elem->state == GENERAL)
+			elem->type = QOUTE;
+		else if (elem->content[0] == '\"' && elem->state == GENERAL)
+			elem->type = DOUBLE_QUOTE;
+		else if (elem->content[0] == '\\' && elem->content[1] != 'n')
+			elem->type = ESCAPE;
+		else if (elem->content[0] == '$' && elem->state != IN_QUOTE)
+			elem->type = ENV;
+		else if(elem->content[0] == '|' && elem->state == GENERAL)
+			elem->type = PIPE_LINE;
+		else 
 		elem = elem->next;
 	}
 	
