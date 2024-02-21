@@ -6,8 +6,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <signal.h>
-#include <signal.h>
 #include <unistd.h>
+ #include <stdbool.h>
 typedef enum e_token
 {
 	WORD = -1,
@@ -20,7 +20,7 @@ typedef enum e_token
 	PIPE_LINE = '|',
 	REDIR_IN = '<',
 	REDIR_OUT = '>',
-	HERE_DOC, //
+	HERE_DOC,
 	DREDIR_OUT,
 } t_token;
 
@@ -31,6 +31,17 @@ typedef enum e_state
 	GENERAL,
 } t_state;
 
+typedef struct s_cmd
+{
+	bool	pipe; // kayna makaynach
+	bool	is_builtin; // echo = 1
+	bool	redir; //0 || 1
+	bool	env;// 0 || 1
+	char	*cmd;//comand
+	char	**argv;//ls : ls -a
+	char *file;// file
+} t_cmd;
+
 typedef struct s_elem
 {
 	char			*content;
@@ -40,7 +51,7 @@ typedef struct s_elem
 	struct s_elem   *next;
 	struct s_elem   *prev;
 }	t_elem;
-
+void sig_handler(int signum);
 void	ft_free(char **str);
 void	ft_tokenizing(char *line);
 void ft_readline(void);
