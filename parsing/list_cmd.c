@@ -1,38 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lists.c                                            :+:      :+:    :+:   */
+/*   list_cmd.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/20 10:06:52 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/20 12:30:50 by mkibous          ###   ########.fr       */
+/*   Created: 2024/02/21 22:39:19 by mkibous           #+#    #+#             */
+/*   Updated: 2024/02/23 00:23:20 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
-t_elem	*ft_lstnew(char *content)
+t_cmd	*ft_lstnew_cmd(char *content)
 {
-	t_elem	*lst;
+	t_cmd	*lst;
 
-	lst = (t_elem *)malloc(sizeof(t_elem));
+	lst = (t_cmd *)malloc(sizeof(t_cmd));
 	if (lst == NULL)
 		return (NULL);
-	lst->content = content;
-	lst->len = ft_strlen(content);
+	lst->cmd = content;
     lst->prev = NULL;
 	lst->next = NULL;
+	lst->file = NULL;
+	lst->redir = NULL;
 	return (lst);
 }
 
-void	ft_lstadd_back(t_elem **lst, t_elem *new)
+void	ft_lstadd_back_cmd(t_cmd **lst, t_cmd *new)
 {
-	t_elem	*l;
+	t_cmd	*l;
 
 	if (!lst || !new)
 		return ;
-	l = ft_lstlast(*lst);
+	l = ft_lstlast_cmd(*lst);
 	if (*lst)
     {
         new->prev = l;
@@ -42,7 +43,7 @@ void	ft_lstadd_back(t_elem **lst, t_elem *new)
 		*lst = new;
 }
 
-void	ft_lstadd_front(t_elem **lst, t_elem *new)
+void	ft_lstadd_front_cmd(t_cmd **lst, t_cmd *new)
 {
 	if (!lst || !new)
 		return ;
@@ -54,7 +55,7 @@ void	ft_lstadd_front(t_elem **lst, t_elem *new)
 	if (new)
 		*lst = new;
 }
-int	ft_lstsize(t_elem *lst)
+int	ft_lstsize_cmd(t_cmd *lst)
 {
 	int	i;
 
@@ -66,7 +67,7 @@ int	ft_lstsize(t_elem *lst)
 	}
 	return (i);
 }
-t_elem	*ft_lstlast(t_elem *lst)
+t_cmd	*ft_lstlast_cmd(t_cmd *lst)
 {
 	if (lst)
 	{

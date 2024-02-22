@@ -1,27 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_putstr.c                                        :+:      :+:    :+:   */
+/*   test.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/07 21:16:49 by mkibous           #+#    #+#             */
-/*   Updated: 2023/12/02 15:41:15 by mkibous          ###   ########.fr       */
+/*   Created: 2024/02/21 20:54:07 by aitaouss          #+#    #+#             */
+/*   Updated: 2024/02/22 00:50:08 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_printf.h"
+#include "minishell.h"
 
-void	ft_putstr(char *s, int *l)
+int main()
 {
-	int	i;
-
-	i = 0;
-	if (s == NULL)
-		s = "(null)";
-	while (s[i])
-	{
-		ft_putchar(s[i], l);
-		i++;
-	}
+    execve("/bin/grep", (char *[]){"grep", "ll", NULL}, NULL);
 }

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/19 18:00:49 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/22 03:35:32 by mkibous          ###   ########.fr       */
+/*   Created: 2024/02/19 09:24:57 by aitaouss          #+#    #+#             */
+/*   Updated: 2024/02/23 00:29:12 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@
 void sig_handler(int signum)
 {
 	if (signum == SIGINT)
-		ft_printf("\nminishell ➤");
+		ft_putstr_fd(GREEN"\nminishell$ "RESET, 1);
 }
+
 void ft_cmd_free(t_cmd **cmd)
 {
 	while ((*cmd))
@@ -29,21 +30,43 @@ void ft_cmd_free(t_cmd **cmd)
 	free(*cmd);
 	(*cmd) = NULL;
 }
-int main()
+
+// MIne
+// int	ft_strcmp(char *str, char *str2)
+// {
+// 	int i;
+
+// 	i = 0;
+// 	while (str[i] && str2[i])
+// 	{
+// 		if (str[i] != str2[i])
+// 			return (0);
+// 		i++;
+// 	}
+// 	if (str[i] != str2[i])
+// 		return (0);
+// 	return (1);
+// }
+
+int main(int argc, char **argv, char **envp)
 {
 	char *line;
 	t_cmd *cmd;
 
+	// (void)argc;
+	// (void)argv;
 	cmd = NULL;
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
+	
 	while (1)
 	{
-		line = readline("minishell ➤");
+		line = readline(GREEN"minishell$ "RESET);
 		if(line)
 		{
 			add_history(line);
 			ft_tokenizing(line, &cmd);
+			execute_part(cmd, envp);
 			ft_cmd_free(&cmd);
 		}
 		if (!line)

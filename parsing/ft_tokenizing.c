@@ -6,19 +6,19 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/22 05:50:25 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/23 00:27:09 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 void ft_printlist(t_elem *elem, t_cmd *cmd)
 {
 	char *str;
 	char *token;
-	ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
-    ft_printf("✥  content     ✥    len       ✥   state      ✥    token  ✥\n");
-    ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
+	printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
+    printf("✥  content     ✥    len       ✥   state      ✥    token  ✥\n");
+    printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
 	while (elem)
 	{
 	if(elem->state == 0 )
@@ -51,28 +51,28 @@ void ft_printlist(t_elem *elem, t_cmd *cmd)
 		token = "HERE_DOC";
 	else if(elem->type == WORD)
 		token = "WORD";
-	ft_printf("✥              ✥              ✥              ✥           ✥\n");
-	ft_printf("✥  '%s'", elem->content);
+	printf("✥              ✥              ✥              ✥           ✥\n");
+	printf("✥  '%s'", elem->content);
 	int j = elem->len - 2;
 	while (j < 8)
 	{
-		ft_printf(" ");
+		printf(" ");
 		j++;
 	}
 	
-	ft_printf("✥    %d         ✥   %s    ✥ %s     ✥\n", elem->len, str, token);
-	ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
+	printf("✥    %d         ✥   %s    ✥ %s     ✥\n", elem->len, str, token);
+	printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
 		elem = elem->next;
 	}
 	while (cmd)
 	{
-		ft_printf("%s| p%d e%d r%d \n", cmd->cmd, cmd->pipe, cmd->env, cmd->redir);
-		if(cmd->redir == 1)
-			ft_printf("F%s\n", cmd->file);
+		printf("%s| p%d e%d r%s \n", cmd->cmd, cmd->pipe, cmd->env, cmd->redir);
+		if(cmd->file)
+			printf("F%s\n", cmd->file);
 		int j = 0;
 		while (cmd->argv[j] != NULL)
 		{
-			ft_printf("<%s>\n", cmd->argv[j]);
+			printf("<%s>\n", cmd->argv[j]);
 			j++;
 		}
 		j = 0;
@@ -192,13 +192,29 @@ int ft_chek(t_elem *elem)
 }
 int ft_count_argv(t_elem *elem)
 {
+	bool echo = 0;
+	bool spaces = 0;
 	int size = 0;
 	while (elem && elem->type != PIPE_LINE)
 	{
-		if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
-			size--;
-		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		if(ft_strncmp(elem->content, "echo", 5) == 0)
+		{
+			spaces = 1;
 			size++;
+			echo = 1;
+		}
+		else if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+			size -= 2;
+		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		{
+			size++;
+			spaces = 0;
+		}
+		else if (spaces == 0 && echo == 1 && (elem->type == WHITE_SPACE && elem->state == GENERAL))
+		{
+			size++;
+			spaces = 1;
+		}
 		elem = elem->next;
 	}
 	return (size);
@@ -207,7 +223,9 @@ int ft_count_argv(t_elem *elem)
 void ft_cmd(t_cmd **cmd, t_elem *elem)
 {
 	bool boolien = 0;
-	bool redir;
+	bool redir = 0;
+	bool echo = 0;
+	bool spaces = 0;
 	int j = 0;
 	t_cmd *last;
 	int size = 0;
@@ -217,40 +235,62 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 	{
 		if(elem->type == WORD && boolien == 0)
 		{
+			if(ft_strncmp(elem->content, "echo", 5) == 0)
+			{
+				spaces = 1;
+				echo = 1;
+			}
+			else
+			{
+				echo = 0;
+				spaces = 0;
+			}
 			ft_lstadd_back_cmd(cmd ,ft_lstnew_cmd(elem->content));
 			last = ft_lstlast_cmd(*cmd);
 			size = ft_count_argv(elem);
-			// ft_printf("|||||%d||||", size);
+			// printf("|||||%d||||", size);
 			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
 			last->argv[size] = NULL;
+			last->argv[j] = elem->content;
+			j++;
 			boolien = 1;
 		}
-		if (elem->type == PIPE_LINE)
+		else if (boolien == 1 && spaces == 0 && echo == 1 && (elem->type == WHITE_SPACE && elem->state == GENERAL))
 		{
-			last->pipe = 1;
-			boolien = 0;
-			redir = 0;
-			j = 0;
+			last->argv[j] = elem->content;
+			j++;
+			spaces = 1;
 		}
-		if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+		else if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
 		{
-			size--;
-			last->argv[size] = elem->content;
-			last->redir = 1;
+			last->redir =  elem->content;
 			redir = 1;
 		}
 		else if (redir == 1 && elem->type == WORD)
 		{
 			redir = 0;
 			last->file = elem->content;
+			spaces = 1;
 		}
-		else if(boolien == 1  && redir == 0 && elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		else if(boolien == 1  && (elem->type == ENV || elem->type == WORD || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{
 			last->argv[j] = elem->content;
+			spaces = 0;
 			j++;
 		}
 		if (elem->type == ENV)
+		{
 			last->env = 1;
+			spaces = 0;
+		}
+		if (elem->type == PIPE_LINE)
+		{
+			last->pipe = 1;
+			boolien = 0;
+			redir = 0;
+			spaces = 0;
+			j = 0;
+		}
 		elem = elem->next;
 	}
 	
@@ -284,7 +324,7 @@ void ft_tokenizing(char *line, t_cmd **cmd)
 			if(last)
 			{
 				// if(closedQ == 0)
-				// ft_printf("|%d|", last->state);
+				// printf("|%d|", last->state);
 				if(closedQ == 1 && last->content[0] != '"')
 					last->state = 0;
 				else if(closedQ == 2 && last->content[0] != '\n')
@@ -298,10 +338,10 @@ void ft_tokenizing(char *line, t_cmd **cmd)
 	ft_token(elem);
 	if(closedQ != 0 || ft_chek(elem))
 	{
-		ft_printf("syntax error\n");
+		printf("syntax error\n");
 		return ;
 	}
 	ft_cmd(cmd, elem);
-	// ft_printf("%s", cmd->cmd);
+	// printf("%s", cmd->cmd);
 	// ft_printlist(elem, *cmd);
 }

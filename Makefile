@@ -1,39 +1,32 @@
-SRCS = main.c ft_tokenizing.c lists.c list_cmd.c
 CC = cc
-CFLAGS = -Wall -Wextra 
-FLAGS = -lreadline
-RM = rm -f
 NAME = minishell
+SRC = minishell.c ./execute/built_in_cmd.c  ./execute/Exe_file.c ./execute/creat_shild.c\
+	./parsing/ft_tokenizing.c ./parsing/lists.c ./parsing/list_cmd.c utils.c
+CFLAGS = -Wall -Wextra -fsanitize=address -g
 LIBFT = libft/libft.a
-PRINT = printf/libftprintf.a
-OBJ = $(SRCS:.c=.o)
+OBJ = $(SRC:.c=.o)
 
-all: $(NAME)
+all: $(NAME) clean
 
-$(NAME): $(OBJ) $(LIBFT) $(PRINT)
-	$(CC) $(CFLAGS) $(FLAGS) $(OBJ) -o $(NAME) $(LIBFT) $(PRINT)
+$(NAME): $(OBJ) $(LIBFT)
+	@echo "\033[92m√\033[0m \033[97m" $<
+	@$(CC) -lreadline $(CFLAGS) -o $(NAME) $(OBJ) $(LIBFT)
 
-$(LIBFT): ./libft/Makefile
+$(LIBFT): 
 	cd libft && make
 
-$(PRINT): ./printf/Makefile
-	cd printf && make
-
-%.o: %.c minishell.h
-	$(CC) $(CFLAGS) -c $<
-
 clean:
-	$(RM) $(OBJ)
+	@cd libft && make clean
+	@rm -f $(OBJ)
 
-clean_libft:
-	cd libft && make clean
-	cd printf && make clean
-
-fclean: clean fclean_libft
-	$(RM) $(NAME)
-
-fclean_libft:
-	cd libft && make fclean
-	cd printf && make fclean
+fclean: clean
+	@cd libft && make fclean
+	@echo "\033[0m \033[97mObject Full Cleaned \033[92m√"
+	@rm -f $(NAME)
 
 re: fclean all
+
+push:
+	@git add .
+	@git commit -m "Automatic commit via make push"
+	@git push
