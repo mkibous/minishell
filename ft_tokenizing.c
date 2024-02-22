@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/22 02:14:24 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/22 05:50:25 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,11 +66,13 @@ void ft_printlist(t_elem *elem, t_cmd *cmd)
 	}
 	while (cmd)
 	{
-		ft_printf("%s| %d   |\n", cmd->cmd, cmd->pipe);
+		ft_printf("%s| p%d e%d r%d \n", cmd->cmd, cmd->pipe, cmd->env, cmd->redir);
+		if(cmd->redir == 1)
+			ft_printf("F%s\n", cmd->file);
 		int j = 0;
 		while (cmd->argv[j] != NULL)
 		{
-			ft_printf("<%s>", cmd->argv[j]);
+			ft_printf("<%s>\n", cmd->argv[j]);
 			j++;
 		}
 		j = 0;
@@ -112,6 +114,7 @@ int len (char *str)
 		}
 	return (i);
 }
+
 int ft_listing (char *str, t_elem **elem)
 {
 	int i = 0;
@@ -132,29 +135,17 @@ int ft_listing (char *str, t_elem **elem)
 }
 void	ft_token(t_elem *elem)
 {
-	// 	WORD = -1,
-	// WHITE_SPACE = ' ',
-	// NEW_LINE = '\n',
-	// QOUTE = '\'',
-	// DOUBLE_QUOTE = '\"',
-	// ESCAPE = '\\',
-	// ENV = '$',
-	// PIPE_LINE = '|',
-	// REDIR_IN = '<',
-	// REDIR_OUT = '>',
-	// HERE_DOC, 63 <<
-	// DREDIR_OUT, 64 >>
 	while (elem)
 	{
 		if (elem->content[0] == ' ')
 			elem->type = WHITE_SPACE;
-		else if(elem->content[0] == '\\' && elem->content[1] == 'n')
+		else if(elem->state != GENERAL && elem->content[0] == '\\' && elem->content[1] == 'n')
 			elem->type = NEW_LINE;
 		else if(elem->content[0] == '\'' && elem->state == GENERAL)
 			elem->type = QOUTE;
 		else if (elem->content[0] == '"' && elem->state == GENERAL)
 			elem->type = DOUBLE_QUOTE;
-		else if (elem->content[0] == '\\' && elem->content[1] != 'n')
+		else if (elem->state != GENERAL && elem->content[0] == '\\' && elem->content[1] != 'n')
 			elem->type = ESCAPE;
 		else if (elem->content[0] == '$' && elem->state != IN_QUOTE)
 			elem->type = ENV;
@@ -204,7 +195,9 @@ int ft_count_argv(t_elem *elem)
 	int size = 0;
 	while (elem && elem->type != PIPE_LINE)
 	{
-		if (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL))
+		if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+			size--;
+		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 			size++;
 		elem = elem->next;
 	}
@@ -214,6 +207,7 @@ int ft_count_argv(t_elem *elem)
 void ft_cmd(t_cmd **cmd, t_elem *elem)
 {
 	bool boolien = 0;
+	bool redir;
 	int j = 0;
 	t_cmd *last;
 	int size = 0;
@@ -226,17 +220,31 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			ft_lstadd_back_cmd(cmd ,ft_lstnew_cmd(elem->content));
 			last = ft_lstlast_cmd(*cmd);
 			size = ft_count_argv(elem);
+			// ft_printf("|||||%d||||", size);
 			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
 			last->argv[size] = NULL;
 			boolien = 1;
 		}
-		else if (elem->type == PIPE_LINE)
+		if (elem->type == PIPE_LINE)
 		{
 			last->pipe = 1;
 			boolien = 0;
+			redir = 0;
 			j = 0;
 		}
-		if(boolien == 1 && elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+		{
+			size--;
+			last->argv[size] = elem->content;
+			last->redir = 1;
+			redir = 1;
+		}
+		else if (redir == 1 && elem->type == WORD)
+		{
+			redir = 0;
+			last->file = elem->content;
+		}
+		else if(boolien == 1  && redir == 0 && elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{
 			last->argv[j] = elem->content;
 			j++;
