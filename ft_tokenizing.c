@@ -6,13 +6,13 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/21 18:42:41 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/22 01:17:37 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void ft_printlist(t_elem *elem)
+void ft_printlist(t_elem *elem, t_cmd *cmd)
 {
 	char *str;
 	char *token;
@@ -64,6 +64,19 @@ void ft_printlist(t_elem *elem)
 	ft_printf("✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥✥\n");
 		elem = elem->next;
 	}
+	while (cmd)
+	{
+		ft_printf("%s| %d   |\n", cmd->cmd, cmd->pipe);
+		int j = 0;
+		while (cmd->argv[j])
+		{
+			ft_printf("  %s", cmd->argv[j]);
+			j++;
+		}
+		
+		cmd = cmd->next;
+	}
+	
 }
 void ft_free(char **str)
 {
@@ -186,7 +199,59 @@ int ft_chek(t_elem *elem)
 		return (1);
 	return(0);
 }
-void ft_tokenizing(char *line)
+int ft_count_argv(t_elem *elem)
+{
+	int size = 0;
+	if(elem->next)
+		elem = elem->next;
+	while (elem && elem->type != PIPE_LINE)
+	{
+		if (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL))
+			size++;
+		elem = elem->next;
+	}
+	return (size);
+}
+
+void ft_cmd(t_cmd **cmd, t_elem *elem)
+{
+	bool boolien = 0;
+	bool pip = 0;
+	int j = 0;
+	t_cmd *last;
+	int size;
+
+	last = NULL;
+	while (elem)
+	{
+		if(elem->type == WORD && boolien == 0)
+		{
+			ft_lstadd_back_cmd(cmd ,ft_lstnew_cmd(elem->content));
+			last = ft_lstlast_cmd(*cmd);
+			size = ft_count_argv(elem);
+			last->argv = (char **)malloc(sizeof(char *) * size);
+			last->argv[size] = NULL;
+			boolien = 1;
+		}
+		if (elem->type == PIPE_LINE)
+		{
+			last->pipe = 1;
+			pip = 1;
+			boolien = 0;
+		}
+		if(boolien == 1 && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		{
+			last->argv[j] = elem->content;
+			ft_printf("<%s  %s>", elem->content, last->argv[j]);
+			j++;
+		}
+		if (elem->type == ENV)
+			last->env = 1;
+		elem = elem->next;
+	}
+	
+}
+void ft_tokenizing(char *line, t_cmd *cmd)
 {
 	int Q = 0;
 	int DQ = 0;
@@ -222,7 +287,6 @@ void ft_tokenizing(char *line)
 					last->state = 1;
 				else
 					last->state = 2;
-					
 			}
 		}
 		i++;
@@ -233,5 +297,7 @@ void ft_tokenizing(char *line)
 		ft_printf("syntax error\n");
 		return ;
 	}
-	ft_printlist(elem);
+	ft_cmd(&cmd, elem);
+	// ft_printf("%s", cmd->cmd);
+	// ft_printlist(elem, cmd);
 }

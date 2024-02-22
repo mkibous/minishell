@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 18:00:49 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/21 17:56:22 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/22 01:20:12 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@ void sig_handler(int signum)
 int main()
 {
 	char *line;
+	t_cmd *cmd;
+
+	cmd = NULL;
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
 	while (1)
@@ -29,7 +32,7 @@ int main()
 		if(line)
 		{
 			add_history(line);
-			ft_tokenizing(line);
+			ft_tokenizing(line, cmd);
 		}
 		if (!line)
 			exit(0);

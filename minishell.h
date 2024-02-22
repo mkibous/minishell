@@ -33,13 +33,15 @@ typedef enum e_state
 
 typedef struct s_cmd
 {
-	bool	pipe; // kayna makaynach
-	bool	is_builtin; // echo = 1
-	bool	redir; //0 || 1
-	bool	env;// 0 || 1
-	char	*cmd;//comand
-	char	**argv;//ls : ls -a
-	char *file;// file
+	bool	pipe;
+	bool	is_builtin;
+	bool	redir;
+	bool	env;
+	char	*cmd;
+	char	**argv;
+	char *file;
+	struct s_cmd   *next;
+	struct s_cmd   *prev;
 } t_cmd;
 
 typedef struct s_elem
@@ -53,12 +55,16 @@ typedef struct s_elem
 }	t_elem;
 void sig_handler(int signum);
 void	ft_free(char **str);
-void	ft_tokenizing(char *line);
+void ft_tokenizing(char *line, t_cmd *cmd);
 void ft_readline(void);
 t_elem	*ft_lstnew(char *content);
 void	ft_lstadd_back(t_elem **lst, t_elem *new);
 void	ft_lstadd_front(t_elem **lst, t_elem *new);
 int	ft_lstsize(t_elem *lst);
 t_elem	*ft_lstlast(t_elem *lst);
-
+t_cmd	*ft_lstnew_cmd(char *content);
+void	ft_lstadd_back_cmd(t_cmd **lst, t_cmd *new);
+void	ft_lstadd_front_cmd(t_cmd **lst, t_cmd *new);
+int	ft_lstsize_cmd(t_cmd *lst);
+t_cmd	*ft_lstlast_cmd(t_cmd *lst);
 #endif
