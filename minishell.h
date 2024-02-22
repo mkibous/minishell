@@ -55,7 +55,7 @@ typedef struct s_elem
 }	t_elem;
 void sig_handler(int signum);
 void	ft_free(char **str);
-void ft_tokenizing(char *line, t_cmd *cmd);
+void ft_tokenizing(char *line, t_cmd **cmd);
 void ft_readline(void);
 t_elem	*ft_lstnew(char *content);
 void	ft_lstadd_back(t_elem **lst, t_elem *new);

@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/22 01:17:37 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/22 02:14:24 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,12 +68,12 @@ void ft_printlist(t_elem *elem, t_cmd *cmd)
 	{
 		ft_printf("%s| %d   |\n", cmd->cmd, cmd->pipe);
 		int j = 0;
-		while (cmd->argv[j])
+		while (cmd->argv[j] != NULL)
 		{
-			ft_printf("  %s", cmd->argv[j]);
+			ft_printf("<%s>", cmd->argv[j]);
 			j++;
 		}
-		
+		j = 0;
 		cmd = cmd->next;
 	}
 	
@@ -202,8 +202,6 @@ int ft_chek(t_elem *elem)
 int ft_count_argv(t_elem *elem)
 {
 	int size = 0;
-	if(elem->next)
-		elem = elem->next;
 	while (elem && elem->type != PIPE_LINE)
 	{
 		if (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL))
@@ -216,10 +214,9 @@ int ft_count_argv(t_elem *elem)
 void ft_cmd(t_cmd **cmd, t_elem *elem)
 {
 	bool boolien = 0;
-	bool pip = 0;
 	int j = 0;
 	t_cmd *last;
-	int size;
+	int size = 0;
 
 	last = NULL;
 	while (elem)
@@ -229,20 +226,19 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			ft_lstadd_back_cmd(cmd ,ft_lstnew_cmd(elem->content));
 			last = ft_lstlast_cmd(*cmd);
 			size = ft_count_argv(elem);
-			last->argv = (char **)malloc(sizeof(char *) * size);
+			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
 			last->argv[size] = NULL;
 			boolien = 1;
 		}
-		if (elem->type == PIPE_LINE)
+		else if (elem->type == PIPE_LINE)
 		{
 			last->pipe = 1;
-			pip = 1;
 			boolien = 0;
+			j = 0;
 		}
-		if(boolien == 1 && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		if(boolien == 1 && elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{
 			last->argv[j] = elem->content;
-			ft_printf("<%s  %s>", elem->content, last->argv[j]);
 			j++;
 		}
 		if (elem->type == ENV)
@@ -251,7 +247,7 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 	}
 	
 }
-void ft_tokenizing(char *line, t_cmd *cmd)
+void ft_tokenizing(char *line, t_cmd **cmd)
 {
 	int Q = 0;
 	int DQ = 0;
@@ -297,7 +293,7 @@ void ft_tokenizing(char *line, t_cmd *cmd)
 		ft_printf("syntax error\n");
 		return ;
 	}
-	ft_cmd(&cmd, elem);
+	ft_cmd(cmd, elem);
 	// ft_printf("%s", cmd->cmd);
-	// ft_printlist(elem, cmd);
+	// ft_printlist(elem, *cmd);
 }

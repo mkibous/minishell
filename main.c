@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 18:00:49 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/22 01:20:12 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/22 02:11:44 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ int main()
 		if(line)
 		{
 			add_history(line);
-			ft_tokenizing(line, cmd);
+			ft_tokenizing(line, &cmd);
 		}
 		if (!line)
 			exit(0);
