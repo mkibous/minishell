@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:25:10 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/25 04:37:32 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/02/26 15:45:04 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,12 +91,12 @@ typedef struct s_cmd
 	int				count_cmd;
 	bool			pipe;
 	bool			is_builtin;
-	char			*redir;
+	char			**redir;
 	char			*diretcory;
 	bool			env;
 	char			*cmd;
 	char			**argv;
-	char			*file;
+	char			**file;
 	struct s_cmd	*next;
 	struct s_cmd	*prev;
 } t_cmd;

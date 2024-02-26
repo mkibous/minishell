@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/26 10:38:57 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/26 16:56:21 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,7 @@ void ft_printlist(t_elem *elem, t_cmd *cmd)
 	}
 	while (cmd)
 	{
-		printf("%s| p%d e%d r%s \n", cmd->cmd, cmd->pipe, cmd->env, cmd->redir);
-		if(cmd->file)
-			printf("F%s\n", cmd->file);
+		printf("%s| p%d e%d \n", cmd->cmd, cmd->pipe, cmd->env);
 		int j = 0;
 		while (cmd->argv[j] != NULL)
 		{
@@ -76,6 +74,15 @@ void ft_printlist(t_elem *elem, t_cmd *cmd)
 			j++;
 		}
 		j = 0;
+		if (cmd->redir)
+		{
+			while (cmd->redir[j])
+			{
+				printf("redir : %s\n", cmd->redir[j]);
+				printf("redir : %s\n", cmd->file[j]);
+				j++;
+			}
+		}
 		cmd = cmd->next;
 	}
 	
@@ -196,7 +203,7 @@ int ft_chek(t_elem *elem)
 		return (1);
 	return(0);
 }
-int ft_count_argv(t_elem *elem)
+int ft_count_argv(t_elem *elem, int *redirs)
 {
 	bool echo = 0;
 	bool spaces = 0;
@@ -212,6 +219,7 @@ int ft_count_argv(t_elem *elem)
 		}
 		else if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
 		{
+			(*redirs)++;
 			redir = 1;
 		}
 		else if (spaces == 0 && redir == 0 && echo == 1 && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE && elem->prev->state == GENERAL)
@@ -229,7 +237,7 @@ int ft_count_argv(t_elem *elem)
 				size++;
 			spaces = 0;
 		}
-		// printf("|%d|%s|\n", size, elem->content);
+		printf("|%d|%s|\n", size, elem->content);
 		elem = elem->next;
 	}
 	return (size);
@@ -255,19 +263,22 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 	bool echo = 0;
 	bool spaces = 0;
 	int j = 0;
+	int i = 0;
+	int redirs = 0;
 	t_cmd *last;
 	int size = 0;
 
 	last = NULL;
 	while (elem)
 	{
+		redirs = 0;
 		if (elem->content[0] == '\\' && elem->type == WORD && elem->state == GENERAL)
 		{
 			elem->content = ft_strdup(&elem->content[1]);
 		}
 		else if(elem->type == ESCAPE)
 			elem->content = ft_get_escape(elem->content[1]);
-		if(elem->type == WORD && boolien == 0)
+		if((( elem->type >= REDIR_IN && elem->type <= DREDIR_OUT) || elem->type == WORD) && boolien == 0)/////////////////////////////
 		{
 			if(ft_strncmp(elem->content, "echo", 5) == 0)
 			{
@@ -281,21 +292,26 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			}
 			ft_lstadd_back_cmd(cmd ,ft_lstnew_cmd(elem->content));
 			last = ft_lstlast_cmd(*cmd);
-			size = ft_count_argv(elem);
+			size = ft_count_argv(elem, &redirs);
+			printf("%d\n", redirs);
 			(*cmd)->count_cmd++;
 			// printf("|||||%d||||", size);
 			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
+			last->redir =  (char **)malloc(sizeof(char *) * (redirs + 1));
+			last->file =  (char **)malloc(sizeof(char *) * (redirs + 1));
+			last->redir[redirs] = NULL; 
+			last->file[redirs] = NULL; 
 			last->argv[size] = NULL;
 			last->argv[j] = elem->content;
 			j++;
 			boolien = 1;
 		}
-		else if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+		else if(boolien == 1 && elem->type >= REDIR_IN && elem->type <= DREDIR_OUT)
 		{
-			last->redir =  elem->content;
+			last->redir[i] =  elem->content;
 			redir = 1;
 		}
-		else if (spaces == 0 && redir == 0 && echo == 1 && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE && elem->prev->state == GENERAL)
+		else if (spaces == 0 && redir == 0 && echo == 1 && elem->type != PIPE_LINE && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE && elem->prev->state == GENERAL)
 		{
 			last->argv[j] = elem->prev->content;
 			j++;
@@ -309,7 +325,8 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 		else if (redir == 1 && elem->type == WORD)
 		{
 			redir = 0;
-			last->file = elem->content;
+			last->file[i] = elem->content;
+			i++;
 			spaces = 0;
 		}
 		else if(boolien == 1  && (elem->type == ESCAPE || elem->type == ENV || elem->type == WORD || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
@@ -388,5 +405,5 @@ void ft_tokenizing(char *line, t_cmd **cmd)
 	}
 	ft_cmd(cmd, elem);
 	// printf("%s", cmd->cmd);
-	// ft_printlist(elem, *cmd);
+	ft_printlist(elem, *cmd);
 }
