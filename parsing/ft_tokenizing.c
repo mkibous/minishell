@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/26 03:05:07 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/26 03:37:09 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,9 @@ int ft_count_argv(t_elem *elem)
 		}
 		else if (spaces == 0 && redir == 0 && echo == 1 && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE && elem->prev->state == GENERAL)
 		{
-			size += 2;
+			size++;
+			if(elem->type == WORD)
+				size++;
 			spaces = 0;
 		}
 		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
@@ -272,8 +274,11 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 		{
 			last->argv[j] = elem->prev->content;
 			j++;
-			last->argv[j] = elem->content;
-			j++;
+			if (elem->type == WORD)
+			{
+				last->argv[j] = elem->content;
+				j++;
+			}
 			spaces = 0;
 		}
 		else if (redir == 1 && elem->type == WORD)
