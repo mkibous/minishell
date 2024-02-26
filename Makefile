@@ -1,6 +1,6 @@
 CC = cc
 NAME = minishell
-SRC = minishell.c ./execute/built_in_cmd.c  ./execute/Exe_file.c ./execute/creat_shild.c\
+SRC = minishell.c ./execute/built_in_cmd.c  ./execute/Exe_file.c ./execute/execute_cmd.c\
 	./parsing/ft_tokenizing.c ./parsing/lists.c ./parsing/list_cmd.c utils.c
 CFLAGS = -Wall -Wextra -fsanitize=address -g
 LIBFT = libft/libft.a
@@ -12,8 +12,10 @@ $(NAME): $(OBJ) $(LIBFT)
 	@echo "\033[92m√\033[0m \033[97m" $<
 	@$(CC) -lreadline $(CFLAGS) -o $(NAME) $(OBJ) $(LIBFT)
 
+%.o : %.c
+	@$(CC) $(CFLAGS) -c $< -o $@
 $(LIBFT): 
-	cd libft && make
+	@cd libft && make
 
 clean:
 	@cd libft && make clean
@@ -30,3 +32,5 @@ push:
 	@git add .
 	@git commit -m "Automatic commit via make push"
 	@git push
+
+.PHONY: clean fclean re all push

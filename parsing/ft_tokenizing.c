@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/23 00:27:09 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/26 03:05:07 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,7 @@ int ft_count_argv(t_elem *elem)
 {
 	bool echo = 0;
 	bool spaces = 0;
+	bool redir = 0;
 	int size = 0;
 	while (elem && elem->type != PIPE_LINE)
 	{
@@ -204,17 +205,23 @@ int ft_count_argv(t_elem *elem)
 			echo = 1;
 		}
 		else if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
-			size -= 2;
-		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{
-			size++;
+			redir = 1;
+		}
+		else if (spaces == 0 && redir == 0 && echo == 1 && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE && elem->prev->state == GENERAL)
+		{
+			size += 2;
 			spaces = 0;
 		}
-		else if (spaces == 0 && echo == 1 && (elem->type == WHITE_SPACE && elem->state == GENERAL))
+		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && (elem->type != WHITE_SPACE || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{
-			size++;
-			spaces = 1;
+			if(redir == 1)
+				redir = 0;
+			else
+				size++;
+			spaces = 0;
 		}
+		// printf("|%d|%s|\n", size, elem->content);
 		elem = elem->next;
 	}
 	return (size);
@@ -248,6 +255,7 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			ft_lstadd_back_cmd(cmd ,ft_lstnew_cmd(elem->content));
 			last = ft_lstlast_cmd(*cmd);
 			size = ft_count_argv(elem);
+			(*cmd)->count_cmd++;
 			// printf("|||||%d||||", size);
 			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
 			last->argv[size] = NULL;
@@ -255,22 +263,24 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			j++;
 			boolien = 1;
 		}
-		else if (boolien == 1 && spaces == 0 && echo == 1 && (elem->type == WHITE_SPACE && elem->state == GENERAL))
-		{
-			last->argv[j] = elem->content;
-			j++;
-			spaces = 1;
-		}
 		else if(elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
 		{
 			last->redir =  elem->content;
 			redir = 1;
 		}
+		else if (spaces == 0 && redir == 0 && echo == 1 && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE && elem->prev->state == GENERAL)
+		{
+			last->argv[j] = elem->prev->content;
+			j++;
+			last->argv[j] = elem->content;
+			j++;
+			spaces = 0;
+		}
 		else if (redir == 1 && elem->type == WORD)
 		{
 			redir = 0;
 			last->file = elem->content;
-			spaces = 1;
+			spaces = 0;
 		}
 		else if(boolien == 1  && (elem->type == ENV || elem->type == WORD || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{

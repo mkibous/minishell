@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 10:33:36 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/22 01:14:54 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/02/23 16:13:37 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,22 +128,22 @@ char	**ft_split(char const *s, char c)
 	return (strings);
 }
 
-// t_cmd	*the_list(char **splited)
-// {
-// 	t_cmd	*cmd;
-// 	t_cmd	*head;
-// 	int		i;
+// ft_strcmp function
+int	ft_strcmp(char *str, char *str2)
+{
+	int i;
 
-// 	i = 0;
-// 	head = get_cmd(splited[i], NULL, false);
-// 	cmd = head;
-// 	while (splited[++i])
-// 	{
-// 		cmd->next = get_cmd(splited[i], NULL, true);
-// 		cmd = cmd->next;
-// 	}
-// 	return (head);
-// }
+	i = 0;
+	while (str[i] && str2[i])
+	{
+		if (str[i] != str2[i])
+			return (0);
+		i++;
+	}
+	if (str[i] != str2[i])
+		return (0);
+	return (1);
+}
 
 // ft_strjoin function
 char	*ft_strjoin(char const *s1, char const *s2)
