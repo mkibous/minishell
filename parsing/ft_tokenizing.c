@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/26 03:37:09 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/26 10:38:57 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,12 @@ int ft_listing (char *str, t_elem **elem)
 	ft_lstadd_back(elem, ft_lstnew(content));
 	return (l);
 }
+int ft_chek_if_escape(char c)
+{
+	if(c == 't' || c == 'b' || c == 'r' || c == '\\')
+		return(1);
+	return(0);
+}
 void	ft_token(t_elem *elem)
 {
 	while (elem)
@@ -145,7 +151,7 @@ void	ft_token(t_elem *elem)
 			elem->type = QOUTE;
 		else if (elem->content[0] == '"' && elem->state == GENERAL)
 			elem->type = DOUBLE_QUOTE;
-		else if (elem->state != GENERAL && elem->content[0] == '\\' && elem->content[1] != 'n')
+		else if (elem->state != GENERAL && elem->content[0] == '\\' && ft_chek_if_escape(elem->content[1]))
 			elem->type = ESCAPE;
 		else if (elem->content[0] == '$' && elem->state != IN_QUOTE)
 			elem->type = ENV;
@@ -228,7 +234,20 @@ int ft_count_argv(t_elem *elem)
 	}
 	return (size);
 }
-
+char *ft_get_escape(char c)
+{
+	if ( c == 't')
+		return(ft_strdup("\t"));
+	else if ( c == 'b')
+		return(ft_strdup("\b"));
+	else if ( c == 'r')
+		return(ft_strdup("\r"));
+	else
+		return(ft_strdup("\\"));
+	// if(c == 't' || c == 'b' || c == 'r' || c == '\''|| c == '\"'|| c == '\\')
+	// 	return(1);
+	// return(0);
+}
 void ft_cmd(t_cmd **cmd, t_elem *elem)
 {
 	bool boolien = 0;
@@ -242,6 +261,12 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 	last = NULL;
 	while (elem)
 	{
+		if (elem->content[0] == '\\' && elem->type == WORD && elem->state == GENERAL)
+		{
+			elem->content = ft_strdup(&elem->content[1]);
+		}
+		else if(elem->type == ESCAPE)
+			elem->content = ft_get_escape(elem->content[1]);
 		if(elem->type == WORD && boolien == 0)
 		{
 			if(ft_strncmp(elem->content, "echo", 5) == 0)
@@ -287,10 +312,15 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			last->file = elem->content;
 			spaces = 0;
 		}
-		else if(boolien == 1  && (elem->type == ENV || elem->type == WORD || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
+		else if(boolien == 1  && (elem->type == ESCAPE || elem->type == ENV || elem->type == WORD || (elem->type == WHITE_SPACE && elem->state != GENERAL)))
 		{
 			last->argv[j] = elem->content;
 			spaces = 0;
+			j++;
+		}
+		else if (boolien == 1 && elem->type == NEW_LINE)
+		{
+			last->argv[j] = strdup("\n");
 			j++;
 		}
 		if (elem->type == ENV)
@@ -324,11 +354,11 @@ void ft_tokenizing(char *line, t_cmd **cmd)
 	elem = NULL;
 	while (line[i])
 	{
-		if (line[i] == '"' && DQ == 0 && Q == 0)
+		if (line[i] == '"' && (i == 0 || line[i - 1] != '\\') && DQ == 0 && Q == 0)
 			(DQ = 1, closedQ = 1);
 		else if (line[i] == '\"' && DQ == 1)
 			(DQ = 0,closedQ = 0);
-		else if (line[i] == '\'' && Q == 0 && DQ == 0)
+		else if (line[i] == '\''&& (i == 0 || line[i - 1] != '\\') && Q == 0 && DQ == 0)
 			(Q = 1, closedQ = 2);
 		else if (line[i] == '\'' && Q == 1)
 			(Q = 0, closedQ = 0);
@@ -342,7 +372,7 @@ void ft_tokenizing(char *line, t_cmd **cmd)
 				// printf("|%d|", last->state);
 				if(closedQ == 1 && last->content[0] != '"')
 					last->state = 0;
-				else if(closedQ == 2 && last->content[0] != '\n')
+				else if(closedQ == 2 && last->content[0] != '\'')
 					last->state = 1;
 				else
 					last->state = 2;
