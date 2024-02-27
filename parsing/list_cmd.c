@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   list_cmd.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 22:39:19 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/23 15:41:41 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/02/27 10:54:45 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ t_cmd	*ft_lstnew_cmd(char *content)
 	lst->cmd = content;
     lst->prev = NULL;
 	lst->next = NULL;
+	lst->argv = NULL;
 	lst->file = NULL;
 	lst->redir = NULL;
 	lst->count_cmd = 0;

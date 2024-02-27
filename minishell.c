@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:24:57 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/26 11:31:14 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/27 13:00:12 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ void sig_handler(int signum)
 {
 	if (signum == SIGINT)
 		ft_putstr_fd(GREEN"➜  "YELLOW""BOLD"minishell "RESET, 1);
-}
+}	
 
 // For free
 void ft_cmd_free(t_cmd **cmd)
@@ -58,7 +58,8 @@ void ft_cmd_free(t_cmd **cmd)
 	while ((*cmd))
 	{
 		// free((*cmd)->cmd);
-		ft_free((*cmd)->argv);
+		if((*cmd)->argv)
+			ft_free((*cmd)->argv);
 		//free((*cmd)->file);
 		(*cmd) = (*cmd)->next;
 	}
@@ -112,7 +113,7 @@ int main(int argc, char **argv, char **envp)
 				continue;
 			}
 			add_history(line);
-			ft_tokenizing(line, &cmd);
+			ft_tokenizing(line, &cmd, envp);
 			ft_built_in(&cmd, table);
 			// if (cmd)
 			// 	execute_for_cmd(cmd, table);

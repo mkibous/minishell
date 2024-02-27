@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:25:10 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/26 15:45:04 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/02/27 13:00:51 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ int		ft_strcmp(char *str, char *str2);
 // askari functions
 void sig_handler(int signum);
 void	ft_free(char **str);
-void ft_tokenizing(char *line, t_cmd **cmd);
+void ft_tokenizing(char *line, t_cmd **cmd, char **envp);
 t_elem	*ft_lstnew(char *content);
 void	ft_lstadd_back(t_elem **lst, t_elem *new);
 void	ft_lstadd_front(t_elem **lst, t_elem *new);
