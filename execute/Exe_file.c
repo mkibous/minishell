@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 14:42:02 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/25 04:37:27 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/02/26 22:13:51 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,8 @@ void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
 		ft_export(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "unset"))
 		ft_unset(cmd, table);
-}
-
-void ft_exit(char **line)
-{
-	if (ft_strcmp(*line, "exit") == 1)
-	{
-		free(*line);
-		exit(0);
-	}
+	else if (ft_strcmp(cmd->cmd, "exit"))
+		ft_exit(cmd->line);
 }
 
 void close_file_descriptor(int fd[][2], int k)
@@ -52,14 +45,8 @@ void close_file_descriptor(int fd[][2], int k)
 	}
 }
 
-
-void	execute_for_cmd(t_cmd *cmd, t_table *table)
+void	creat_pipe(t_table *table, int fd[][2], int k)
 {
-	int	k;
-	int	fd[table->count_cmd][2];
-	pid_t	pid[table->count_cmd];
-
-	k = 0;
 	while (k < table->count_cmd)
 	{
 		if (pipe(fd[k]) == -1)
@@ -69,7 +56,41 @@ void	execute_for_cmd(t_cmd *cmd, t_table *table)
 		}
 		k++;
 	}
+}
+
+void	into_child(t_cmd *cmd, int fd[][2], t_table *table, int k)
+{
+	if (k > 0)
+		dup2(fd[k][0], 0);
+	if (cmd->next)
+		dup2(fd[k + 1][1], 1);
+	close_file_descriptor(fd, k);
+	if (cmd->is_builtin)
+		execute_built_in(cmd, fd, table, k);
+	else if (ft_strcmp(cmd->cmd, "clear"))
+		ft_putstr_fd(CLEAR, 1);
+	else
+		execute_cmd(cmd, fd, cmd->argv, k);
+	exit(EXIT_SUCCESS);
+}
+
+void	wait_all_pid(t_table *table, pid_t pid[], int k)
+{
+	while (k < table->count_cmd)
+	{
+		waitpid(pid[k], NULL, 0);
+		k++;
+	}
+}
+void	execute_for_cmd(t_cmd *cmd, t_table *table)
+{
+	int	k;
+	int	fd[table->count_cmd][2];
+	pid_t	pid[table->count_cmd];
+	char buf[1];
+
 	k = 0;
+	creat_pipe(table, fd, k);
 	while (cmd)
 	{
 		pid[k] = fork();
@@ -79,26 +100,15 @@ void	execute_for_cmd(t_cmd *cmd, t_table *table)
 			exit(EXIT_FAILURE);
 		}
 		if (pid[k] == 0)
+			into_child(cmd, fd, table, k);
+		else if (pid[k]> 0 )
 		{
-			if (k > 0)
-				dup2(fd[k][0], 0);
-			if (cmd->next)
-				dup2(fd[k + 1][1], 1);
-			close_file_descriptor(fd, k);
-			if (cmd->is_builtin)
-				execute_built_in(cmd, fd, table, k);
-			else
-				execute_cmd(cmd, fd, cmd->argv, k);
-			exit(EXIT_SUCCESS);
+			into_parrent(cmd, pid, k, table, buf);
 		}
 		k++;
 		cmd = cmd->next;
 	}
 	close_file_descriptor(fd, k);
 	k = 0;
-	while (k < table->count_cmd)
-	{
-		waitpid(pid[k], NULL, 0);
-		k++;
-	}
+	wait_all_pid(table, pid, k);
 }

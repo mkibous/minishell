@@ -1,7 +1,9 @@
 CC = cc
 NAME = minishell
 SRC = minishell.c ./execute/built_in_cmd.c  ./execute/Exe_file.c ./execute/execute_cmd.c\
-	./parsing/ft_tokenizing.c ./parsing/lists.c ./parsing/list_cmd.c utils.c
+	./parsing/ft_tokenizing.c ./parsing/lists.c ./parsing/list_cmd.c utils.c \
+	./execute/into_parrent.c
+
 CFLAGS = -Wall -Wextra -fsanitize=address -g
 LIBFT = libft/libft.a
 OBJ = $(SRC:.c=.o)
