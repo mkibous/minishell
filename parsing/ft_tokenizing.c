@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/03 02:20:15 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/04 21:18:32 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -364,7 +364,6 @@ void ft_cmd(t_cmd **cmd, t_elem *elem, char **env)
 	int redirs = 0;
 	t_cmd *last;
 	int size = 0;
-///////////////////////////////n in all n = 0
 	last = NULL;
 	ft_envr(elem, env);
 	ft_join(elem, env);
