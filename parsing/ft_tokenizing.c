@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/07 01:51:27 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/07 16:09:27 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ int len(char *str)
 		}
 		while (str[i])
 		{
-			if (env == 1 && (str[i] == '$' || str[i] == '?'))
+			if (env == 1 && str[i - 1] == '$' &&  (str[i] == '$' || str[i] == '?'))
 			{
 				i++;
 				break;
@@ -308,10 +308,12 @@ char *ft_get_escape(char c)
 	// 	return(1);
 	// return(0);
 }
-char *put_env(char *str, char **env)
+char *put_env(char *str, char **env, pid_t pid)
 {
 	int i = 0;
 	int len = 0;
+	if (!ft_strncmp(str, "$$", 3))
+		return(strdup(ft_itoa((int)pid)));
 	while (env[i])
 	{
 		if (ft_strlen(env[i]) > ft_strlen(str))
@@ -332,7 +334,7 @@ void ft_envr(t_elem *elem, char **env)
 	if (elem->type == ENV)
 	{
 		elem->type = WORD;
-		elem->content = put_env(elem->content, env);
+		elem->content = put_env(elem->content, env, elem->pid);
 	}
 	if (elem->type == NEW_LINE)
 	{
@@ -557,7 +559,7 @@ char **env_copy(char **envp)
 	return (envs);
 }
 
-void ft_tokenizing(char *line, t_cmd **cmd, char **envp)
+void ft_tokenizing(char *line, t_cmd **cmd, char **envp, pid_t pid)
 {
 	int Q = 0;
 	int DQ = 0;
@@ -595,8 +597,7 @@ void ft_tokenizing(char *line, t_cmd **cmd, char **envp)
 			last = ft_lstlast(elem);
 			if (last)
 			{
-				// if(closedQ == 0)
-				// printf("|%d|", last->state);
+				last->pid = pid;
 				if (closedQ == 1 && last->content[0] != '"')
 					last->state = 0;
 				else if (closedQ == 2 && last->content[0] != '\'')
