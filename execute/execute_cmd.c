@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 21:51:03 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/06 01:12:50 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/07 21:39:02 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,33 @@ void    execute_cmd(t_cmd *cmd, int fd[][2], char **argv, int k)
 				i++;
 			}
 			exit(EXIT_FAILURE);
+		}
+	}
+	else
+	{
+		if (cmd->redir[0])
+		{
+			int	fd;
+			int	i;
+	
+			i = 0;
+			while (cmd->redir[i])
+			{
+				printf("redir : %s\n", cmd->redir[i]);
+				if (ft_strncmp(cmd->redir[i], ">>", 2) == 0)
+					fd = open(cmd->file[i], O_CREAT | O_RDWR | O_APPEND, 0644);
+				else if (ft_strncmp(cmd->redir[i], ">", 1) == 0)
+					fd = open(cmd->file[i], O_CREAT | O_RDWR | O_TRUNC, 0644);
+				else if (ft_strncmp(cmd->redir[i], "<", 1) == 0)
+					fd = 1;
+				if (cmd->redir[i + 1] == NULL)
+				{
+					ft_putstr_fd(cmd->line, fd);
+					// ft_putstr_fd("\n", fd);
+				}
+				close(fd);
+				i++;
+			}
 		}
 	}
 }

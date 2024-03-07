@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:24:57 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/07 16:05:32 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/07 21:44:59 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ t_table	*ft_init_table(char **envp)
 	}
 	table->env[i] = NULL;
 	table->alpha = getcwd(NULL, 0);
+	table->declare_x = NULL;
+	table->trash = NULL;
 	return (table);
 }
 
@@ -85,6 +87,7 @@ void	ft_built_in(t_cmd **cmd, t_table *table)
 		tmp = tmp->next;
 	} 
 }
+
 char **the_twode(char **twode)
 {
 	int index = 0;
@@ -96,6 +99,7 @@ char **the_twode(char **twode)
 	twode[index] = NULL;
 	return (twode);
 }
+
 pid_t ft_get_pid()
 {
 	pid_t pid;

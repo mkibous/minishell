@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 14:42:02 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/06 01:09:59 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/06 21:27:02 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
 	else if (ft_strcmp(cmd->cmd, "unset"))
 		ft_unset(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "exit"))
-		ft_exit(cmd->line);
+		ft_exit();
 }
 
 void close_file_descriptor(int fd[][2], int k)

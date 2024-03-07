@@ -2,7 +2,7 @@ CC = cc
 NAME = minishell
 SRC = minishell.c ./execute/built_in_cmd.c  ./execute/Exe_file.c ./execute/execute_cmd.c\
 	./parsing/ft_tokenizing.c ./parsing/lists.c ./parsing/list_cmd.c utils.c \
-	./execute/into_parrent.c ./execute/redir_functions.c
+	./execute/into_parrent.c ./execute/redir_functions.c ./execute/ft_export.c \
 
 CFLAGS = -Wall -Wextra -g
 LIBFT = libft/libft.a
@@ -31,8 +31,13 @@ fclean: clean
 re: fclean all
 
 push:
-	@git add .
-	@git commit -m "Automatic commit via make push"
-	@git push
+	@read -p "Enter commit message: " commit_message; \
+	git add .; \
+	git commit -m "$$commit_message"; \
+	git push;
 
+pull:
+	@git stash
+	@git pull
+	@git stash pop
 .PHONY: clean fclean re all push

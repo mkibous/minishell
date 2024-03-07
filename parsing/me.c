@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   me.c                                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/06 19:14:39 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/07 02:41:08 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,8 +251,6 @@ void ft_cmd(t_cmd **cmd, t_elem *elem)
 			(*cmd)->count_cmd++;
 			// printf("|||||%d||||", size);
 			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
-			if(last->argv == NULL)
-				exit(1);
 			last->argv[size] = NULL;
 			last->argv[j] = elem->content;
 			j++;

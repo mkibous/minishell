@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:25:10 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/07 15:52:26 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/07 22:13:14 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,8 @@ typedef struct s_table
 	char			*value;
 	int				signe;
 	char			*alpha;
+	char			**declare_x;
+	char			**trash;
 } t_table;
 
 //askari header
@@ -131,7 +133,7 @@ void    ft_cd(t_cmd *cmd, t_table *table);
 void    ft_pwd(t_cmd *cmd);
 void	ft_env(t_table *table, t_cmd *cmd);
 void	ft_echo(t_cmd *cmd);
-void	ft_exit(char *line);
+void	ft_exit();
 void	ft_export(t_cmd *cmd, t_table *table);
 void	ft_unset(t_cmd *cmd, t_table *table);
 
@@ -147,11 +149,13 @@ size_t	ft_strlen(const char *s);
 char	*ft_strdup(const char *s1);
 char	*ft_strjoin(char const *s1, char const *s2);
 int		ft_strcmp(char *str, char *str2);
+void	ft_putstr2d_fd(char **str, int fd);
+int		ft_strlen_2d(char **str);
 
 // askari functions
-void sig_handler(int signum);
+void 	sig_handler(int signum);
 void	ft_free(char **str);
-void ft_tokenizing(char *line, t_cmd **cmd, char **envp, pid_t pid);
+void 	ft_tokenizing(char *line, t_cmd **cmd, char **envp, pid_t pid);
 t_elem	*ft_lstnew(char *content);
 void	ft_lstadd_back(t_elem **lst, t_elem *new);
 void	ft_lstadd_front(t_elem **lst, t_elem *new);
