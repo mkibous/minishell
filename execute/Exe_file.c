@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 14:42:02 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/26 22:13:51 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/06 01:09:59 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,13 @@ void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
 	if (cmd->next)
 		close(fd[k][1]);
 	if (ft_strcmp(cmd->cmd, "cd"))
-		ft_cd(cmd);
+		ft_cd(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "pwd"))
-		ft_pwd();
+		ft_pwd(cmd);
 	else if (ft_strcmp(cmd->cmd, "echo"))
 		ft_echo(cmd);
 	else if (ft_strcmp(cmd->cmd, "env"))
-		ft_env(table);
+		ft_env(table, cmd);
 	else if (ft_strcmp(cmd->cmd, "export"))
 		ft_export(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "unset"))
