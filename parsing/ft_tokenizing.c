@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_tokenizing.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/07 21:42:43 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/08 01:37:06 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ int len(char *str)
 				i++;
 				break;
 			}
-			if (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || (str[i] == '\\' && str[i + 1]) || str[i] == '|' || str[i] == '>' || str[i] == '<' || (env == 1 && !ft_isalnum(str[i])))
+			if (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || (str[i] == '\\' && str[i + 1]) || str[i] == '|' || str[i] == '>' || str[i] == '<' || (env == 1 && !ft_isalnum(str[i])) || str[i] == '$')
 				break;
 			i++;
 		}
@@ -335,6 +335,10 @@ void ft_envr(t_elem *elem, char **env)
 	{
 		elem->type = WORD;
 		elem->content = put_env(elem->content, env, elem->pid);
+		// if(elem->content[0] == '\0')
+		// {
+		// 	elem->content = elem->next->content
+		// }
 	}
 	if (elem->type == NEW_LINE)
 	{
@@ -398,6 +402,8 @@ void ft_cmd(t_cmd **cmd, t_elem *elem, char **env)
 	ft_join(elem, env);
 	while (elem)
 	{
+		if(elem->content[0] == '\0' && elem->next)
+			elem = elem->next;
 		if (!n && echo == 1 && !ft_comp_n(elem->content) && ((elem->state == IN_DQUOTE && elem->prev->type == DOUBLE_QUOTE && elem->next->type == DOUBLE_QUOTE) || (elem->state == IN_QUOTE && elem->prev->type == QOUTE && elem->next->type == QOUTE) || elem->state == GENERAL))
 		{
 			last->echo_new_line = 1;
@@ -615,5 +621,5 @@ void ft_tokenizing(char *line, t_cmd **cmd, char **envp, pid_t pid)
 		return;
 	}
 	ft_cmd(cmd, elem, env);
-	// ft_printlist(elem, *cmd);
+	ft_printlist(elem, *cmd);
 }
