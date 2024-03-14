@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:24:57 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/07 21:44:59 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/14 00:16:53 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ t_table	*ft_init_table(char **envp)
 	table->alpha = getcwd(NULL, 0);
 	table->declare_x = NULL;
 	table->trash = NULL;
+	table->pwd_env = NULL;
+	table->exit_status = 0;
 	return (table);
 }
 
@@ -52,7 +54,12 @@ t_table	*ft_init_table(char **envp)
 void sig_handler(int signum)
 {
 	if (signum == SIGINT)
-		ft_putstr_fd(GREEN"\n➜  "RED""BOLD"minishell "RESET, 1);
+	{
+		printf("\n");
+        rl_on_new_line();
+        rl_replace_line("", 1);
+        rl_redisplay();
+	}
 }
 
 // For free
@@ -60,10 +67,14 @@ void ft_cmd_free(t_cmd **cmd)
 {
 	while ((*cmd))
 	{
-		// free((*cmd)->cmd);
-		if ((*cmd)->cmd)
-			ft_free((*cmd)->argv);
-		//free((*cmd)->file);
+		// if((*cmd)->cmd)
+		// 	free((*cmd)->cmd);
+		// if ((*cmd)->argv)
+		// 	ft_free((*cmd)->argv);
+		// if((*cmd)->file)
+		// 	ft_free((*cmd)->file);
+		// if((*cmd)->redir)
+		// 	ft_free((*cmd)->redir);
 		(*cmd) = (*cmd)->next;
 	}
 	free(*cmd);
@@ -112,6 +123,34 @@ pid_t ft_get_pid()
 	return(pid); 
 }
 
+// alloc with protection
+char **alloc_env(char **env)
+{
+	int i;
+	char **new_env;
+	char	*tmp;
+	i = 0;
+	while (env[i])
+		i++;
+	new_env = (char **)malloc(sizeof(char *) * (i + 1));
+	if (!new_env)
+		return (NULL);
+	i = 0;
+	while (env[i])
+	{
+		tmp = ft_strdup(env[i]);
+		if (!tmp)
+			return (NULL);
+		tmp = ft_strjoin("declare -x ", tmp);
+		if (!tmp)
+			return (NULL);
+		new_env[i] = tmp;
+		i++;
+	}
+	new_env[i] = NULL;
+	return (new_env);
+}
+
 int main(int argc, char **argv, char **envp)
 {
 	char	*line;
@@ -127,13 +166,16 @@ int main(int argc, char **argv, char **envp)
 	pid =  ft_get_pid();
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
+	rl_catch_signals = 0;
 	allocation = the_twode(envp);
 	table = ft_init_table(allocation);
 	table->var = "➜  minishell ";
+	table->declare_x = alloc_env(table->env);
+	table->pwd_env = getcwd(NULL, 0);
 	while (1)
 	{
 		rr = rand() % 2;
-		if (rr)		
+		if (rr)	
 			line = readline(GREEN"➜  "RED""BOLD"minishell "RESET);
 		else
 			line = readline(RED"➜  "RED""BOLD"minishell "RESET);
@@ -141,7 +183,7 @@ int main(int argc, char **argv, char **envp)
 		{
 			add_history(line);
 			if (line[0] != '\0')
-				ft_tokenizing(line, &cmd, table->env, pid);
+				ft_tokenizing(line, &cmd, table, pid);
 			ft_built_in(&cmd, table);
 			if (cmd)
 				execute_for_cmd(cmd, table);
@@ -149,7 +191,8 @@ int main(int argc, char **argv, char **envp)
 		}
 		if (!line)
 		{
-			free(line);
+			ft_putstr_fd("exit", 1);
+			ft_putstr_fd("\n", 1);
 			exit(0);
 		}
 		free(line);

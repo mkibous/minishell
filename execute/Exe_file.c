@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Exe_file.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 14:42:02 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/06 21:27:02 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/13 23:47:44 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@ void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
 	if (ft_strcmp(cmd->cmd, "cd"))
 		ft_cd(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "pwd"))
-		ft_pwd(cmd);
+		ft_pwd(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "echo"))
-		ft_echo(cmd);
+		ft_echo(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "env"))
 		ft_env(table, cmd);
 	else if (ft_strcmp(cmd->cmd, "export"))
@@ -29,7 +29,7 @@ void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
 	else if (ft_strcmp(cmd->cmd, "unset"))
 		ft_unset(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "exit"))
-		ft_exit();
+		ft_exit(cmd, table);
 }
 
 void close_file_descriptor(int fd[][2], int k)
@@ -70,40 +70,51 @@ void	into_child(t_cmd *cmd, int fd[][2], t_table *table, int k)
 	else if (ft_strcmp(cmd->cmd, "clear"))
 		ft_putstr_fd(CLEAR, 1);
 	else
-		execute_cmd(cmd, fd, cmd->argv, k);
+		execute_cmd(cmd, fd, cmd->argv, k, table);
 	exit(EXIT_SUCCESS);
 }
 
 void	wait_all_pid(t_table *table, pid_t pid[], int k)
 {
+	int	status;
+
+	status = 0;
 	while (k < table->count_cmd)
 	{
-		waitpid(pid[k], NULL, 0);
+		waitpid(pid[k], &status, 0);
 		k++;
 	}
+	table->exit_status = (WEXITSTATUS(status));
 }
 void	execute_for_cmd(t_cmd *cmd, t_table *table)
 {
 	int	k;
 	int	fd[table->count_cmd][2];
 	pid_t	pid[table->count_cmd];
-	char buf[1];
 
 	k = 0;
 	creat_pipe(table, fd, k);
 	while (cmd)
 	{
-		pid[k] = fork();
-		if (pid[k] == -1)
+		if (cmd->pipe || !cmd->is_builtin)
 		{
-			perror("fork");
-			exit(EXIT_FAILURE);
+			pid[k] = fork();
+			if (pid[k] == -1)
+			{
+				perror("fork");
+				exit(EXIT_FAILURE);
+			}
+			if (pid[k] == 0)
+				into_child(cmd, fd, table, k);
 		}
-		if (pid[k] == 0)
-			into_child(cmd, fd, table, k);
-		else if (pid[k]> 0 )
+		else
 		{
-			into_parrent(cmd, pid, k, table, buf);
+			if (cmd->is_builtin)
+				execute_built_in(cmd, fd, table, k);
+			else if (ft_strcmp(cmd->cmd, "clear"))
+				ft_putstr_fd(CLEAR, 1);
+			else
+				execute_cmd(cmd, fd, cmd->argv, k, table);
 		}
 		k++;
 		cmd = cmd->next;

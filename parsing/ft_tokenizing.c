@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/08 01:37:06 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/14 01:56:40 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,10 @@ int len(char *str)
 {
 	int i = 0;
 	int env = 0;
-	if (str[i] && (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || str[i] == '|' || (str[i] == '>' && str[i + 1] != '>') || (str[i] == '<' && str[i + 1] != '<'))) // handle < or > and << >>
-		i++;
+	if(str[i] == '\\' && str[i + 1] && str[i + 1] == '\'')
+		return(1);
+	// if (str[i] && ((str[i] == ' ' || str[i] == '\t') || str[i] == '\'' || str[i] == '"' || str[i] == '|' || (str[i] == '>' && str[i + 1] != '>') || (str[i] == '<' && str[i + 1] != '<'))) // handle < or > and << >>
+	// 	i++;
 	else if (str[i] && str[i + 1] && (str[i] == '\\' || (str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<')))
 		i = 2;
 	else
@@ -125,8 +127,13 @@ int len(char *str)
 				i++;
 				break;
 			}
-			if (str[i] == ' ' || str[i] == '\'' || str[i] == '"' || (str[i] == '\\' && str[i + 1]) || str[i] == '|' || str[i] == '>' || str[i] == '<' || (env == 1 && !ft_isalnum(str[i])) || str[i] == '$')
+			if ((str[i] == ' ' || str[i] == '\t') || str[i] == '\'' || str[i] == '"' || (str[i] == '\\' && str[i + 1]) || str[i] == '|' || str[i] == '>' || str[i] == '<' || (env == 1 && !ft_isalnum(str[i])) || str[i] == '$')
+			{
+				if (i == 0)
+					return(1);
 				break;
+			}
+			
 			i++;
 		}
 	}
@@ -152,145 +159,181 @@ int ft_listing(char *str, t_elem **elem)
 }
 int ft_chek_if_escape(char c)
 {
-	if (c == 't' || c == 'b' || c == 'r' || c == '\\' || c == '\"' || c == '\'')
+	if (c == 't' || c == 'b' || c == 'r' || c == '\\' || c == '\"' || c == '\''
+		|| c == '$')
 		return (1);
 	return (0);
+}
+int ft_token_2(t_elem *elem)
+{
+	int ret;
+
+	ret = 0;
+	if ((elem->content[0] == ' ' || elem->content[0] == '\t')
+				&& elem->state == GENERAL)
+		(1) && (elem->type = WHITE_SPACE, ret = 1);
+	else if (elem->state != GENERAL && elem->content[0] == '\\'
+			&& elem->content[1] == 'n')
+		(1) && (elem->type = NEW_LINE, ret = 1);
+	else if (elem->content[0] == '\'' && elem->state == GENERAL
+			&& (!elem->prev || (elem->prev
+			&& ft_strncmp(elem->prev->content, "\\", 2) != 0)
+			|| (elem->prev && elem->prev->state  != GENERAL
+			&& ft_strncmp(elem->prev->content, "\\", 2) == 0)))
+		(1) && (elem->type = QOUTE, ret = 1);
+	else if (elem->content[0] == '"' && elem->state == GENERAL)
+		(1) && (elem->type = DOUBLE_QUOTE, ret = 1);
+	else if (elem->state == IN_DQUOTE && elem->content[0] == '\\'
+			&& ft_chek_if_escape(elem->content[1]))
+		(1) && (elem->type = ESCAPE, ret = 1);
+	else if (elem->content[0] == '$' && (ft_strlen(elem->content) > 1
+			|| (elem->state == GENERAL && elem->next
+			&& (elem->next->content[0] == '\''
+			|| elem->next->content[0] == '\"'))) && elem->state != IN_QUOTE)
+		(1) &&(elem->type = ENV, ret = 1);
+	return (ret);
 }
 void ft_token(t_elem *elem)
 {
 	while (elem)
 	{
-		if (elem->content[0] == ' ' && elem->state == GENERAL)
-			elem->type = WHITE_SPACE;
-		else if (elem->state != GENERAL && elem->content[0] == '\\' && elem->content[1] == 'n')
-			elem->type = NEW_LINE;
-		else if (elem->content[0] == '\'' && elem->state == GENERAL)
-			elem->type = QOUTE;
-		else if (elem->content[0] == '"' && elem->state == GENERAL)
-			elem->type = DOUBLE_QUOTE;
-		else if (elem->state != GENERAL && elem->content[0] == '\\' && ft_chek_if_escape(elem->content[1]))
-			elem->type = ESCAPE;
-		else if (elem->content[0] == '$' && (ft_strlen(elem->content) > 1 || (elem->state == GENERAL && elem->next && (elem->next->content[0] == '\'' || elem->next->content[0] == '\"'))) && elem->state != IN_QUOTE)
-			elem->type = ENV;
+		if(ft_token_2(elem));
 		else if (elem->content[0] == '|' && elem->state == GENERAL)
 			elem->type = PIPE_LINE;
-		else if (elem->content[0] == '>' && elem->content[1] != '>' && elem->state == GENERAL)
+		else if (elem->content[0] == '>' && elem->content[1] != '>'
+				&& elem->state == GENERAL)
 			elem->type = REDIR_OUT;
-		else if (elem->content[0] == '<' && elem->content[1] != '<' && elem->state == GENERAL)
+		else if (elem->content[0] == '<' && elem->content[1] != '<'
+				&& elem->state == GENERAL)
 			elem->type = REDIR_IN;
-		else if (elem->content[0] == '>' && elem->content[1] == '>' && elem->state == GENERAL)
+		else if (elem->content[0] == '>' && elem->content[1] == '>'
+				&& elem->state == GENERAL)
 			elem->type = DREDIR_OUT;
-		else if (elem->content[0] == '<' && elem->content[1] == '<' && elem->state == GENERAL)
+		else if (elem->content[0] == '<' && elem->content[1] == '<'
+				&& elem->state == GENERAL)
 			elem->type = HERE_DOC;
 		else
 			elem->type = WORD;
 		elem = elem->next;
 	}
 }
+int ft_chek_quotes(t_elem *elem, int *b, int *Q)
+{
+	if (elem->type == DOUBLE_QUOTE)
+	{
+		if (*Q == 0)
+			*Q = 1;
+		else if (*Q == 1)
+			*Q = 0;
+	}
+	else if (elem->type == QOUTE)
+	{
+		if (*Q == 0)
+			*Q = 2;
+		else if (*Q == 2)
+			*Q = 0;
+	}
+	if (elem->type == REDIR_IN || elem->type == REDIR_OUT
+			|| elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+	{
+		if (*b == 1)
+			return (1);
+		*b = 1;
+	}
+	if ((elem->type == WORD || elem->state != GENERAL || elem->type == ENV)
+			&& (*b == 1 || *b == 2))
+		*b = 0;
+	return(0);
+}
 int ft_chek(t_elem *elem)
 {
-	int b = 0;
-	int Q = 0;
+	int b;
+	int Q;
+
+	b = 0;
+	Q = 0;
 	while (elem)
 	{
-		if (elem->type == DOUBLE_QUOTE)
-		{
-			if (Q == 0)
-				Q = 1;
-			else if (Q == 1)
-				Q = 0;
-		}
-		else if (elem->type == QOUTE)
-		{
-			if (Q == 0)
-				Q = 2;
-			else if (Q == 2)
-				Q = 0;
-		}
-		if (elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
-		{
-			if (b == 1)
-				return (1);
-			b = 1;
-		}
+		if(ft_chek_quotes(elem, &b, &Q))
+			return(1);
 		if (elem->type == PIPE_LINE)
 		{
 			if (b != 0)
 				return (1);
 			b = 2;
 		}
-		if ((elem->type == WORD || elem->state != GENERAL || elem->type == ENV) && (b == 1 || b == 2))
-			b = 0;
-		// if wrod b = 0 if rdir and b = 1 eroor
+		if (elem->content[0] == '\\' && elem->type == WORD
+				&& elem->state == GENERAL && !elem->content[1]
+				&& (!elem->next || elem->next->content[0] != '\''))
+			return(1);
 		elem = elem->next;
 	}
 	if (b != 0 || Q != 0)
 		return (1);
 	return (0);
 }
-int ft_comp_n(char *str)
+int ft_comp_n(char *str, t_elem *elem)
 {
-	int i = 0;
+	int i;
+
+	i = 0;
+	if((elem->state == IN_DQUOTE && (elem->prev->type != DOUBLE_QUOTE
+			|| elem->next->type != DOUBLE_QUOTE)) || (elem->state == IN_QUOTE
+			&& (elem->prev->type != QOUTE || elem->next->type != QOUTE)))
+			return(1);
 	if (str[i] == '-')
 	{
 		i++;
 		while (str[i] == 'n')
 			i++;
 	}
-	if (str[i] == '\0')
+	if (str[i] == '\0' && i > 1)
 		return (0);
 	return (1);
 }
+void ft_count_echo_spaces(t_vars *vars, t_elem *elem)
+{
+	if (vars->spaces == 0 && vars->redir == 0 && vars->echo == 1 && elem->prev
+				&& elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE)
+		{
+			vars->size++;
+			if (elem->type == WORD)
+				(1) && (vars->n = 1, vars->size++);
+			vars->spaces = 0;
+		}
+	else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE
+				&& elem->type != WHITE_SPACE)
+	{
+		if(elem->type == WORD && elem->content[0] == '\0');
+		else if (vars->redir == 1)
+			vars->redir = 0;
+		else 
+			vars->size++;
+		(1) && (vars->spaces = 0, vars->n = 1);
+	}
+}
 int ft_count_argv(t_elem *elem, int *redirs)
 {
-	bool echo = 0;
-	bool spaces = 0;
-	bool redir = 0;
-	bool n = 0;
-	int size = 0;
+	t_vars vars;
+	ft_memset(&vars, 0, sizeof(vars));
 	while (elem && elem->type != PIPE_LINE)
 	{
-		if (n == 0 && echo == 1 && !ft_comp_n(elem->content) && ((elem->state == IN_DQUOTE && elem->prev->type == DOUBLE_QUOTE && elem->next->type == DOUBLE_QUOTE) || (elem->state == IN_QUOTE && elem->prev->type == QOUTE && elem->next->type == QOUTE) || elem->state == GENERAL))
+		if (vars.n == 0 && vars.echo == 1 && !ft_comp_n(elem->content, elem))
 			;
 		else if (ft_strncmp(elem->content, "echo", 5) == 0)
-		{
-			spaces = 1;
-			size++;
-			echo = 1;
-		}
-		else if (elem->type == REDIR_IN || elem->type == REDIR_OUT || elem->type == HERE_DOC || elem->type == DREDIR_OUT)
-		{
-			(*redirs)++;
-			redir = 1;
-			n = 1;
-		}
-		else if (spaces == 0 && redir == 0 && echo == 1 && elem->prev && elem->type != WHITE_SPACE && elem->prev->type == WHITE_SPACE)
-		{
-			size++;
-			if (elem->type == WORD)
-			{
-				n = 1;
-				size++;
-			}
-			spaces = 0;
-		}
-		else if (elem->type != DOUBLE_QUOTE && elem->type != QOUTE && elem->type != WHITE_SPACE)
-		{
-			if (redir == 1)
-				redir = 0;
-			else
-				size++;
-			spaces = 0;
-			n = 1;
-		}
+			(1) && (vars.spaces = 1, vars.size++, vars.echo = 1);
+		else if (elem->type == REDIR_IN || elem->type == REDIR_OUT
+				|| elem->type == HERE_DOC || elem->type == DREDIR_OUT)
+			(1) && ((*redirs)++, vars.redir = 1, vars.n = 1);
+		else
+			ft_count_echo_spaces(&vars, elem);
 		if (elem->type == DOUBLE_QUOTE || elem->type == QOUTE)
-			spaces = 0;
-		// printf("|%d|%s|\n", size, elem->content);
+			vars.spaces = 0;
 		elem = elem->next;
 	}
-	return (size);
-}
-char *ft_get_escape(char c)
+	return (vars.size);
+}	
+char *ft_get_escape(char c, t_state state)
 {
 	if (c == 't')
 		return (ft_strdup("\\t"));
@@ -298,22 +341,30 @@ char *ft_get_escape(char c)
 		return (ft_strdup("\\b"));
 	else if (c == 'r')
 		return (ft_strdup("\\r"));
-	else if (c == '\"')
+	else if (c == '\"' && state != IN_QUOTE)
+		return (ft_strdup("\""));
+	else if(c == '\"' && state == IN_QUOTE)
 		return (ft_strdup("\""));
 	else if (c == '\'')
 		return (ft_strdup("\'"));
+	else if (c == '$' && state == IN_QUOTE)
+		return (ft_strdup("\\$"));
+	else if (c == '$' && state != IN_QUOTE)
+		return (ft_strdup("$"));
 	else
 		return (ft_strdup("\\"));
-	// if(c == 't' || c == 'b' || c == 'r' || c == '\''|| c == '\"'|| c == '\\')
-	// 	return(1);
-	// return(0);
 }
-char *put_env(char *str, char **env, pid_t pid)
+char *put_env(char *str, char **env, pid_t pid, int last_exit)
 {
-	int i = 0;
-	int len = 0;
+	int i;
+	int len;
+
+	i = 0;
+	len = 0;
 	if (!ft_strncmp(str, "$$", 3))
-		return(strdup(ft_itoa((int)pid)));
+		return(ft_itoa((int)pid));
+	if (!ft_strncmp(str, "$?", 3))
+		return(ft_itoa(last_exit));
 	while (env[i])
 	{
 		if (ft_strlen(env[i]) > ft_strlen(str))
@@ -329,53 +380,52 @@ char *put_env(char *str, char **env, pid_t pid)
 	}
 	return (strdup(""));
 }
-void ft_envr(t_elem *elem, char **env)
+void ft_envr(t_elem *elem, char **env, int last_exit)
 {
-	if (elem->type == ENV)
+	int i;
+
+	i = 0;
+	while (elem)
 	{
-		elem->type = WORD;
-		elem->content = put_env(elem->content, env, elem->pid);
-		// if(elem->content[0] == '\0')
-		// {
-		// 	elem->content = elem->next->content
-		// }
-	}
-	if (elem->type == NEW_LINE)
-	{
-		elem->type = WORD;
-		elem->content = strdup("\\n");
-	}
-	if (elem->content[0] == '\\' && elem->type == WORD && elem->state == GENERAL)
-	{
-		elem->type = WORD;
-		elem->content = ft_strdup(&elem->content[1]);
-	}
-	else if (elem->type == ESCAPE)
-	{
-		elem->type = WORD;
-		elem->content = ft_get_escape(elem->content[1]);
+		if (elem->type == ENV)
+		{
+			elem->type = WORD;
+			elem->content = put_env(elem->content, env, elem->pid, last_exit);
+		}
+		if (elem->type == NEW_LINE)
+		{
+			elem->type = WORD;
+			elem->content = strdup("\\n");
+		}
+		if (elem->content[0] == '\\' && elem->type == WORD
+				&& elem->state == GENERAL)
+			elem->content = ft_strdup(&elem->content[1]);
+		else if (elem->type == ESCAPE)
+		{
+			elem->type = WORD;
+			elem->content = ft_get_escape(elem->content[1], elem->state);
+		}
+		elem = elem->next;
 	}
 }
-void ft_join(t_elem *elem, char **env)
+void ft_join(t_elem *elem)
 {
 	t_elem *tmp;
 	while (elem)
 	{
-		ft_envr(elem, env);
 		if (elem->next && (elem->type == WORD))
 		{
 			(1) && (tmp = elem, elem = elem->next);
-			while (elem->next && (elem->type == DOUBLE_QUOTE || elem->type == QOUTE))
+			while (elem->next && (elem->type == DOUBLE_QUOTE
+					|| elem->type == QOUTE))
 				elem = elem->next;
-			ft_envr(elem, env);
 			if (elem->type == WORD)
 			{
 				tmp->content = ft_strjoin(tmp->content, elem->content);
 				if (elem->next)
 					elem->next->prev = elem->prev;
 				elem->prev->next = elem->next;
-				free(elem);
-				elem = tmp;
+				(1) && (free(elem), elem = tmp);
 			}
 			else
 				elem = tmp->next;
@@ -384,7 +434,7 @@ void ft_join(t_elem *elem, char **env)
 			elem = elem->next;
 	}
 }
-void ft_cmd(t_cmd **cmd, t_elem *elem, char **env)
+void ft_cmd(t_cmd **cmd, t_elem *elem, char **env, int last_exit)
 {
 	bool boolien = 0;
 	bool redir = 0;
@@ -398,13 +448,13 @@ void ft_cmd(t_cmd **cmd, t_elem *elem, char **env)
 	t_cmd *last;
 	int size = 0;
 	last = NULL;
-	ft_envr(elem, env);
-	ft_join(elem, env);
+	ft_envr(elem, env, last_exit);
+	ft_join(elem);
 	while (elem)
 	{
 		if(elem->content[0] == '\0' && elem->next)
 			elem = elem->next;
-		if (!n && echo == 1 && !ft_comp_n(elem->content) && ((elem->state == IN_DQUOTE && elem->prev->type == DOUBLE_QUOTE && elem->next->type == DOUBLE_QUOTE) || (elem->state == IN_QUOTE && elem->prev->type == QOUTE && elem->next->type == QOUTE) || elem->state == GENERAL))
+		if (!n && echo == 1 && !ft_comp_n(elem->content, elem))
 		{
 			last->echo_new_line = 1;
 		}
@@ -427,25 +477,30 @@ void ft_cmd(t_cmd **cmd, t_elem *elem, char **env)
 			{
 				ft_lstadd_back_cmd(cmd, ft_lstnew_cmd(elem->content));
 				last = ft_lstlast_cmd(*cmd);
-				last->redir = (char **)malloc(sizeof(char *) * (redirs + 1));
-				if (last->redir == NULL)
-					exit(1);
-				last->file = (char **)malloc(sizeof(char *) * (redirs + 1));
-				if (last->file == NULL)
-					exit(1);
-				last->redir[redirs] = NULL;
-				last->file[redirs] = NULL;
+				if(redirs > 0)
+				{
+					last->redir = (char **)malloc(sizeof(char *) * (redirs + 1));
+					if (last->redir == NULL)
+						exit(1);
+					last->file = (char **)malloc(sizeof(char *) * (redirs + 1));
+					if (last->file == NULL)
+						exit(1);
+					last->redir[redirs] = NULL;
+					last->file[redirs] = NULL;
+				}
 			}
 			else
 				last->cmd = elem->content;
 			last = ft_lstlast_cmd(*cmd);
-			// printf("%d\n", redirs);
+			// printf("%d\n", size);
 			(*cmd)->count_cmd++;
 			last->argv = (char **)malloc(sizeof(char *) * (size + 1));
 			if (last->argv == NULL)
 				exit(1);
 			last->argv[size] = NULL;
 			last->argv[j] = elem->content;
+			if (last->prev && last->prev->pipe == 1)
+				last->pipe = 1;
 			j++;
 			boolien = 1;
 			prev_is_redir = 0;
@@ -533,7 +588,9 @@ int ft_count_env(char **env)
 }
 int env_len(char *str)
 {
-	int i = 0;
+	int i;
+
+	i = 0;
 	while (str[i] && str[i] != '=')
 	{
 		i++;
@@ -543,11 +600,15 @@ int env_len(char *str)
 char **env_copy(char **envp)
 {
 	char **envs;
-	int size = 0;
-	int i = 0;
-	int j = 0;
-	int l = 0;
+	int size;
+	int i;
+	int j;
+	int l;
 
+	i = 0;
+	j = 0;
+	l = 0;
+	size = 0;
 	size = ft_count_env(envp);
 	envs = (char **)malloc(sizeof(char *) * ((size * 2) + 1));
 	if (envs == NULL)
@@ -565,38 +626,29 @@ char **env_copy(char **envp)
 	return (envs);
 }
 
-void ft_tokenizing(char *line, t_cmd **cmd, char **envp, pid_t pid)
+void ft_tokenizing(char *line, t_cmd **cmd, t_table *table, pid_t pid)
 {
+	t_elem *elem;
+	t_elem *last;
 	int Q = 0;
 	int DQ = 0;
 	int closedQ = 0;
 	char **env;
-	// to cheke if " or ' are closed and to handle  "'mehdi'" or '"mehdi"'
 	int i = 0;
 	int l = 0;
-	// int len_envr = 0;
-
-	t_elem *elem;
-	t_elem *last;
-	elem = NULL;
-	env = env_copy(envp);
-	// int j = 0;
-	// while (env[j])
-	// {
-	// 	printf("%s\n", env[j]);
-	// 	j++;
-	// }
-	////////////now i have what i need for evn if(i %= 2 && i != 1 && sncmp(env[j], $dsds, strlen(env[j])))......
+	env = env_copy(table->env);
 	while (line[i])
 	{
-		if (line[i] == '"' && (i == 0 || line[i - 1] != '\\') && DQ == 0 && Q == 0)
-			(DQ = 1, closedQ = 1);
+		if (line[i] == '"' && (i == 0 || line[i - 1] != '\\') && DQ == 0 &&
+				Q == 0)
+			(1) && (DQ = 1, closedQ = 1);
 		else if (line[i] == '\"' && DQ == 1)
-			(DQ = 0, closedQ = 0);
-		else if (line[i] == '\'' && (i == 0 || line[i - 1] != '\\') && Q == 0 && DQ == 0)
-			(Q = 1, closedQ = 2);
+			(1) && (DQ = 0, closedQ = 0);
+		else if (line[i] == '\'' && (i == 0 || line[i - 1] != '\\') && Q == 0
+				&& DQ == 0)
+			(1) && (Q = 1, closedQ = 2);
 		else if (line[i] == '\'' && Q == 1)
-			(Q = 0, closedQ = 0);
+			(1) && (Q = 0, closedQ = 0);
 		if (i == l)
 		{
 			l += ft_listing(line + i, &elem);
@@ -615,11 +667,13 @@ void ft_tokenizing(char *line, t_cmd **cmd, char **envp, pid_t pid)
 		i++;
 	}
 	ft_token(elem);
+	ft_printlist(elem, *cmd);
 	if (ft_chek(elem))
 	{
 		printf("syntax error\n");
 		return;
 	}
-	ft_cmd(cmd, elem, env);
-	ft_printlist(elem, *cmd);
+	ft_cmd(cmd, elem, env, table->exit_status);
+	// printf("''%p''\n", (*cmd)->redir);
+	// ft_printlist(elem, *cmd);
 }
