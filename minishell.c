@@ -6,13 +6,13 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 09:24:57 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/14 00:16:53 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/29 23:23:10 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
 // table len
+int g_status = 0;
 int	ft_tablen(char **tab)
 {
 	int	i;
@@ -39,6 +39,7 @@ t_table	*ft_init_table(char **envp)
 	while (envp[i])
 	{
 		table->env[i] = ft_strdup(envp[i]);
+		free(envp[i]);
 		i++;
 	}
 	table->env[i] = NULL;
@@ -47,6 +48,10 @@ t_table	*ft_init_table(char **envp)
 	table->trash = NULL;
 	table->pwd_env = NULL;
 	table->exit_status = 0;
+	table->fd_hredoc = 0;
+	table->tmp_in = 0;
+	table->tmp_out = 0;
+	table->red = -1;
 	return (table);
 }
 
@@ -55,6 +60,12 @@ void sig_handler(int signum)
 {
 	if (signum == SIGINT)
 	{
+		if (g_status == 2)
+		{
+			g_status = 1;
+			printf("\n");
+			return;
+		}
 		printf("\n");
         rl_on_new_line();
         rl_replace_line("", 1);
@@ -65,19 +76,35 @@ void sig_handler(int signum)
 // For free
 void ft_cmd_free(t_cmd **cmd)
 {
+	t_elem	*tmp;
+	t_elem	*tmp2;
+	t_cmd	*tmp_cmd;
+
+	tmp = NULL;
+	if((*cmd))
+		tmp = (*cmd)->elem;
+	while (tmp)
+	{
+		if (tmp->content)
+			free(tmp->content);
+		tmp2 = tmp->next;
+		free(tmp);
+		tmp = tmp2;
+	}
 	while ((*cmd))
 	{
-		// if((*cmd)->cmd)
-		// 	free((*cmd)->cmd);
-		// if ((*cmd)->argv)
-		// 	ft_free((*cmd)->argv);
-		// if((*cmd)->file)
-		// 	ft_free((*cmd)->file);
-		// if((*cmd)->redir)
-		// 	ft_free((*cmd)->redir);
-		(*cmd) = (*cmd)->next;
+		if((*cmd)->cmd)
+			free((*cmd)->cmd);
+		if ((*cmd)->argv)
+			ft_free((*cmd)->argv);
+		if((*cmd)->file)
+			ft_free((*cmd)->file);
+		if((*cmd)->redir)
+			ft_free((*cmd)->redir);
+		tmp_cmd = (*cmd)->next;
+		free(*cmd);
+		(*cmd) = tmp_cmd;
 	}
-	free(*cmd);
 	(*cmd) = NULL;
 }
 
@@ -129,6 +156,7 @@ char **alloc_env(char **env)
 	int i;
 	char **new_env;
 	char	*tmp;
+	char	*tmp2;
 	i = 0;
 	while (env[i])
 		i++;
@@ -138,19 +166,26 @@ char **alloc_env(char **env)
 	i = 0;
 	while (env[i])
 	{
-		tmp = ft_strdup(env[i]);
+		tmp2 = ft_strdup(env[i]);
 		if (!tmp)
 			return (NULL);
-		tmp = ft_strjoin("declare -x ", tmp);
+		tmp = ft_strjoin("declare -x ", tmp2);
 		if (!tmp)
-			return (NULL);
-		new_env[i] = tmp;
+			return (free(tmp2), NULL);
+		free(tmp2);
+		new_env[i] = ft_strdup(tmp);
+		free(tmp);
 		i++;
 	}
 	new_env[i] = NULL;
 	return (new_env);
 }
 
+void	f()
+{
+	// check leaks
+	system("leaks minishell");
+}
 int main(int argc, char **argv, char **envp)
 {
 	char	*line;
@@ -174,6 +209,7 @@ int main(int argc, char **argv, char **envp)
 	table->pwd_env = getcwd(NULL, 0);
 	while (1)
 	{
+		g_status = 0;
 		rr = rand() % 2;
 		if (rr)	
 			line = readline(GREEN"➜  "RED""BOLD"minishell "RESET);
@@ -183,7 +219,7 @@ int main(int argc, char **argv, char **envp)
 		{
 			add_history(line);
 			if (line[0] != '\0')
-				ft_tokenizing(line, &cmd, table, pid);
+				ft_parsing(line, &cmd, table, pid);
 			ft_built_in(&cmd, table);
 			if (cmd)
 				execute_for_cmd(cmd, table);

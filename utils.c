@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 10:33:36 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/02/27 18:25:18 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/19 23:46:45 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,26 @@ char	*ft_strdup(const char *s1)
     }
     str[i] = '\0';
     return (str);
+}
+
+// copy env function
+char	**copy_the_env(char **env)
+{
+	int		i;
+	char	**new_env;
+
+	i = 0;
+	while (env[i])
+		i++;
+	new_env = (char **)malloc(sizeof(char *) * (i + 1));
+	i = 0;
+	while (env[i])
+	{
+		new_env[i] = ft_strdup(env[i]);
+		i++;
+	}
+	new_env[i] = NULL;
+	return (new_env);
 }
 
 // ft_strlen function
@@ -176,16 +196,47 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	return (str);
 }
 
+int	search_for_path(t_table *table)
+{
+	int	i;
+
+	i = 0;
+	while (table->env[i])
+	{
+		if (ft_strncmp(table->env[i], "PATH=", 5) == 0)
+			return (i);
+		i++;
+	}
+	return (-1);
+}
+
 // a function to check the access of the path
-int	check_access(char *command, t_cmd *cmd)
+int	check_access(char *command, t_cmd *cmd, t_table *table)
 {
 	char	*env = getenv("PATH");
-	char	**splited = ft_split(env, ':');
+	char	**splited = NULL;
 	int		i;
 	int		flag;
 	
 	flag = 0;
 	i = 0;
+	
+	if (search_for_path(table) != -1)
+	{
+		env = table->env[search_for_path(table)];
+		// copy all after =
+		env = ft_strdup(env + 5);
+		splited = ft_split(env, ':');
+	}
+	if (search_for_path(table) == -1)
+	{
+		ft_putstr_fd("msh: ", 2);
+		ft_putstr_fd(cmd->cmd, 2);
+		// no shuch file or directory
+		ft_putstr_fd(": No such file or directory\n", 2);
+		table->exit_status = 127;
+		exit(127);
+	}
 	while (splited[i])
 	{
 		char	*new_path = ft_strjoin(splited[i], "/");

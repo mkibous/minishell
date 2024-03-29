@@ -3,102 +3,65 @@
 /*                                                        :::      ::::::::   */
 /*   execute_cmd.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 21:51:03 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/13 15:38:54 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/27 15:57:27 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-// creat shild with pipe and use execve
-void    execute_cmd(t_cmd *cmd, int fd[][2], char **argv, int k, t_table *table)
+//function of pwd command
+void	ft_pwd(t_table *table)
 {
-	execve(cmd->cmd, argv, NULL);
-	if (cmd->cmd)
+	char	cwd[1024];
+
+	if (!getcwd(cwd, sizeof(cwd)))
 	{
-		if (check_access(cmd->cmd, cmd) == 0)
-		{
-			if (cmd->redir && cmd->redir[0] != NULL)
-			{
-				int fd;
-				int	i;
-	
-				i = 0;
-				while (cmd->redir[i])
-				{
-					fd = open(cmd->file[i], O_CREAT | O_WRONLY | O_TRUNC, 0644);
-					if (fd < 0)
-					{
-						ft_putstr_fd("msh: ", 2);
-						ft_putstr_fd(cmd->file[i], 2);
-						ft_putstr_fd(": No such file or directory\n", 2);
-						exit(1);
-					}
-					close(fd);
-					i++;
-				}
-			}
-			ft_putstr_fd("msh: ", 2);
-			ft_putstr_fd(cmd->cmd, 2);
-			ft_putstr_fd(": command not found\n", 2);
-			exit(127);
-			table->exit_status = 127;
-		}
-		else
-		{
-			if (cmd->next)
-				close(fd[k][0]);
-			close(fd[k][1]);
-			int	i;
-	
-			i = 0;
-			while (cmd->redir)
-			{
-				if (cmd->redir[i] != NULL)
-				{
-					if (ft_strncmp(cmd->redir[i], ">>", 2) == 0)
-						redir_out_append(cmd, i);
-					else if (ft_strncmp(cmd->redir[i], ">", 1) == 0)
-						redir_out(cmd, i);
-					else if (ft_strncmp(cmd->redir[i], "<", 1) == 0)
-						redir_in(cmd, i);
-				}
-				if (cmd->redir[i + 1] == NULL)
-				{
-					if(execve(cmd->path, argv, NULL) == -1)
-						perror("execve");
-				}
-				i++;
-			}
-			if(!cmd->redir)
-			{
-				if(execve(cmd->path, argv, NULL) == -1)
-					perror("execve");
-			}
-			exit(EXIT_FAILURE);
-		}
+		table->exit_status = 1;
+		exit(1);
+	}
+	ft_putstr_fd(cwd, 1);
+	ft_putstr_fd("\n", 1);
+}
+
+void	for_execute(t_cmd *cmd, t_table *table, int **fd_s, int k)
+{
+	if (check_access(cmd->cmd, cmd, table) == 0)
+	{
+		ft_putstr_fd("msh: ", 2);
+		ft_putstr_fd(cmd->cmd, 2);
+		ft_putstr_fd(": command not found\n", 2);
+		table->exit_status = 127;
+		exit(127);
 	}
 	else
 	{
-		if (cmd->redir[0])
+		if (cmd->next)
+			close(fd_s[k][0]);
+		close(fd_s[k][1]);
+		table->exit_status = 0;
+		if (execve(cmd->path, cmd->argv, table->env) == -1)
 		{
-			int	fd;
-			int	i;
-	
-			i = 0;
-			while (cmd->redir[i])
-			{
-				if (ft_strncmp(cmd->redir[i], ">>", 2) == 0)
-					fd = open(cmd->file[i], O_CREAT | O_RDWR | O_APPEND, 0644);
-				else if (ft_strncmp(cmd->redir[i], ">", 1) == 0)
-					fd = open(cmd->file[i], O_CREAT | O_RDWR | O_TRUNC, 0644);
-				else if (ft_strncmp(cmd->redir[i], "<", 1) == 0)
-					fd = 1;
-				close(fd);
-				i++;
-			}
+			ft_putstr_fd("msh: ", 2);
+			ft_putstr_fd(cmd->cmd, 2);
+			ft_putstr_fd(": command not found\n", 2);
+			table->exit_status = 127;
+			exit(127);
 		}
+		table->exit_status = 1;
+		exit(EXIT_FAILURE);
 	}
+}
+
+// creat shild with pipe and use execve
+void	execute_cmd(t_cmd *cmd, int **fd_s, int k, t_table *table)
+{
+	int	i;
+
+	execve(cmd->cmd, cmd->argv, table->env);
+	i = 0;
+	if (cmd->cmd)
+		for_execute(cmd, table, fd_s, k);
 }

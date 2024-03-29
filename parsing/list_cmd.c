@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   list_cmd.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 22:39:19 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/27 18:26:33 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/23 00:25:06 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,9 @@ t_cmd	*ft_lstnew_cmd(char *content)
 	lst = (t_cmd *)malloc(sizeof(t_cmd));
 	if (lst == NULL)
 		return (NULL);
+	ft_memset(lst, 0, sizeof(t_cmd));
 	lst->cmd = content;
-    lst->prev = NULL;
-	lst->next = NULL;
-	lst->argv = NULL;
-	lst->file = NULL;
-	lst->redir = NULL;
-	lst->count_cmd = 0;
+	
 	return (lst);
 }
 
@@ -37,38 +33,14 @@ void	ft_lstadd_back_cmd(t_cmd **lst, t_cmd *new)
 		return ;
 	l = ft_lstlast_cmd(*lst);
 	if (*lst)
-    {
-        new->prev = l;
+	{
+		new->prev = l;
 		l->next = new;
-    }
+	}
 	else
 		*lst = new;
 }
 
-void	ft_lstadd_front_cmd(t_cmd **lst, t_cmd *new)
-{
-	if (!lst || !new)
-		return ;
-	if (lst && new)
-    {
-        (*lst)->prev = new;
-		new->next = *lst;
-    }
-	if (new)
-		*lst = new;
-}
-int	ft_lstsize_cmd(t_cmd *lst)
-{
-	int	i;
-
-	i = 0;
-	while (lst)
-	{
-		i++;
-		lst = lst->next;
-	}
-	return (i);
-}
 t_cmd	*ft_lstlast_cmd(t_cmd *lst)
 {
 	if (lst)

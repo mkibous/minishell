@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lists.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 10:06:52 by mkibous           #+#    #+#             */
-/*   Updated: 2024/02/22 15:39:04 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/03/19 15:24:14 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ t_elem	*ft_lstnew(char *content)
 		return (NULL);
 	lst->content = content;
 	lst->len = ft_strlen(content);
-    lst->prev = NULL;
+	lst->prev = NULL;
 	lst->next = NULL;
 	return (lst);
 }
@@ -34,38 +34,14 @@ void	ft_lstadd_back(t_elem **lst, t_elem *new)
 		return ;
 	l = ft_lstlast(*lst);
 	if (*lst)
-    {
-        new->prev = l;
+	{
+		new->prev = l;
 		l->next = new;
-    }
+	}
 	else
 		*lst = new;
 }
 
-void	ft_lstadd_front(t_elem **lst, t_elem *new)
-{
-	if (!lst || !new)
-		return ;
-	if (lst && new)
-    {
-        (*lst)->prev = new;
-		new->next = *lst;
-    }
-	if (new)
-		*lst = new;
-}
-int	ft_lstsize(t_elem *lst)
-{
-	int	i;
-
-	i = 0;
-	while (lst)
-	{
-		i++;
-		lst = lst->next;
-	}
-	return (i);
-}
 t_elem	*ft_lstlast(t_elem *lst)
 {
 	if (lst)
@@ -74,4 +50,33 @@ t_elem	*ft_lstlast(t_elem *lst)
 			lst = lst->next;
 	}
 	return (lst);
+}
+
+void	ft_free(char **str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		free(str[i]);
+		str[i] = NULL;
+		i++;
+	}
+	free(str);
+	str = NULL;
+}
+
+void	elem_free(t_elem *elem)
+{
+	t_elem *tmp;
+	while (elem)
+	{
+		free(elem->content);
+		tmp = elem->next;
+		free(elem);
+		elem = tmp;
+		if(tmp)
+			free(tmp);
+	}
 }

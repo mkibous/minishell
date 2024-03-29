@@ -6,24 +6,24 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 14:42:02 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/13 23:47:44 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/03/27 16:04:27 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
+void	execute_built_in(t_cmd *cmd, int **fd, t_table *table, int k)
 {
 	if (cmd->next)
 		close(fd[k][1]);
 	if (ft_strcmp(cmd->cmd, "cd"))
 		ft_cd(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "pwd"))
-		ft_pwd(cmd, table);
+		ft_pwd(table);
 	else if (ft_strcmp(cmd->cmd, "echo"))
 		ft_echo(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "env"))
-		ft_env(table, cmd);
+		ft_env(table);
 	else if (ft_strcmp(cmd->cmd, "export"))
 		ft_export(cmd, table);
 	else if (ft_strcmp(cmd->cmd, "unset"))
@@ -32,7 +32,7 @@ void execute_built_in(t_cmd *cmd, int fd[][2], t_table *table, int k)
 		ft_exit(cmd, table);
 }
 
-void close_file_descriptor(int fd[][2], int k)
+void	close_file_descriptor(int **fd, int k)
 {
 	int	i;
 
@@ -45,7 +45,7 @@ void close_file_descriptor(int fd[][2], int k)
 	}
 }
 
-void	creat_pipe(t_table *table, int fd[][2], int k)
+void	creat_pipe(t_table *table, int **fd, int k)
 {
 	while (k < table->count_cmd)
 	{
@@ -58,68 +58,54 @@ void	creat_pipe(t_table *table, int fd[][2], int k)
 	}
 }
 
-void	into_child(t_cmd *cmd, int fd[][2], t_table *table, int k)
+void	alloc_and_check_failure(int ***fd, pid_t **pid, t_table **table)
 {
-	if (k > 0)
-		dup2(fd[k][0], 0);
-	if (cmd->next)
-		dup2(fd[k + 1][1], 1);
-	close_file_descriptor(fd, k);
-	if (cmd->is_builtin)
-		execute_built_in(cmd, fd, table, k);
-	else if (ft_strcmp(cmd->cmd, "clear"))
-		ft_putstr_fd(CLEAR, 1);
-	else
-		execute_cmd(cmd, fd, cmd->argv, k, table);
-	exit(EXIT_SUCCESS);
-}
+	int	i;
 
-void	wait_all_pid(t_table *table, pid_t pid[], int k)
-{
-	int	status;
-
-	status = 0;
-	while (k < table->count_cmd)
+	i = -1;
+	*pid = (pid_t *)malloc(sizeof(pid_t) * (*table)->count_cmd);
+	if (!(*pid))
 	{
-		waitpid(pid[k], &status, 0);
-		k++;
+		perror("malloc");
+		exit(EXIT_FAILURE);
 	}
-	table->exit_status = (WEXITSTATUS(status));
+	*fd = (int **)malloc(sizeof(int *) * (*table)->count_cmd);
+	if (!(*fd))
+	{
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+	while (++i < (*table)->count_cmd)
+	{
+		(*fd)[i] = (int *)malloc(sizeof(int) * 2);
+		if (!(*fd)[i])
+		{
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
+	}
 }
+
 void	execute_for_cmd(t_cmd *cmd, t_table *table)
 {
-	int	k;
-	int	fd[table->count_cmd][2];
-	pid_t	pid[table->count_cmd];
+	int		k;
+	int		**fd;
+	pid_t	*pid;
 
+	alloc_and_check_failure(&fd, &pid, &table);
 	k = 0;
-	creat_pipe(table, fd, k);
-	while (cmd)
+	if (cmd->is_builtin && !cmd->pipe)
 	{
-		if (cmd->pipe || !cmd->is_builtin)
-		{
-			pid[k] = fork();
-			if (pid[k] == -1)
-			{
-				perror("fork");
-				exit(EXIT_FAILURE);
-			}
-			if (pid[k] == 0)
-				into_child(cmd, fd, table, k);
-		}
-		else
-		{
-			if (cmd->is_builtin)
-				execute_built_in(cmd, fd, table, k);
-			else if (ft_strcmp(cmd->cmd, "clear"))
-				ft_putstr_fd(CLEAR, 1);
-			else
-				execute_cmd(cmd, fd, cmd->argv, k, table);
-		}
-		k++;
-		cmd = cmd->next;
+		(1) && (table->tmp_in = dup(0), table->tmp_out = dup(1));
+		handle_redir(cmd, table, k, fd);
+		execute_built_in(cmd, fd, table, k);
+		dup2(table->tmp_in, 0);
+		dup2(table->tmp_out, 1);
+		(1) && (close(table->tmp_in), close(table->tmp_out), table->tmp_in = 0);
+		return ;
 	}
-	close_file_descriptor(fd, k);
-	k = 0;
+	creat_pipe(table, fd, k);
+	loop_child(cmd, fd, table, pid);
 	wait_all_pid(table, pid, k);
+	close_file_descriptor(fd, k);
 }
