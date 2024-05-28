@@ -3,22 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:51:46 by mkibous           #+#    #+#             */
-/*   Updated: 2024/01/21 21:15:46 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/05/21 12:46:07 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static int	ft_outoflimit(long long n, int s, int count)
+static int	ft_outoflimit(long long n, int s, int count, int *flag)
 {
 	n = n * s;
 	if (n > 2147483647 || n < -2147483648 || count > 19)
 	{
-		ft_putstr_fd("Error \nsome arguments are bigger than an integer", 2);
-		exit(1);
+		*flag = 1;
 	}
 	return (n);
 }
@@ -35,7 +34,7 @@ static int	ft_skipzero(const char *str)
 	return (i);
 }
 
-int	ft_atoi(const char *str)
+int	ft_atoi(const char *str, int *flag)
 {
 	int				s;
 	int				i;
@@ -61,5 +60,5 @@ int	ft_atoi(const char *str)
 		count++;
 		i++;
 	}
-	return (ft_outoflimit(nbr, s, count));
+	return (ft_outoflimit(nbr, s, count, flag));
 }

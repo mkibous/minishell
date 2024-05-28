@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 10:06:52 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/19 15:24:14 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/05/11 18:49:53 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,14 +69,15 @@ void	ft_free(char **str)
 
 void	elem_free(t_elem *elem)
 {
-	t_elem *tmp;
+	t_elem	*tmp;
+
 	while (elem)
 	{
 		free(elem->content);
 		tmp = elem->next;
 		free(elem);
 		elem = tmp;
-		if(tmp)
+		if (tmp)
 			free(tmp);
 	}
 }

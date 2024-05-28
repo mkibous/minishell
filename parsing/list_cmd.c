@@ -6,7 +6,7 @@
 /*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 22:39:19 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/23 00:25:06 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/05/11 18:55:21 by mkibous          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ t_cmd	*ft_lstnew_cmd(char *content)
 		return (NULL);
 	ft_memset(lst, 0, sizeof(t_cmd));
 	lst->cmd = content;
-	
 	return (lst);
 }
 
@@ -49,4 +48,43 @@ t_cmd	*ft_lstlast_cmd(t_cmd *lst)
 			lst = lst->next;
 	}
 	return (lst);
+}
+
+int	env_len(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i] && str[i] != '=')
+		i++;
+	return (i);
+}
+
+void	last_arg(t_cmd *cmd, t_table *table)
+{
+	int		i;
+	char	**str;
+
+	i = 0;
+	if (cmd && cmd->argv)
+	{
+		str = cmd->argv;
+		while (str[i])
+			i++;
+		if (cmd && !cmd->next)
+		{
+			free(table->last_arg);
+			table->last_arg = ft_strdup(cmd->argv[i - 1]);
+		}
+		else if (cmd && cmd->next)
+		{
+			free(table->last_arg);
+			table->last_arg = ft_strdup("");
+		}
+	}
+	else
+	{
+		free(table->last_arg);
+		table->last_arg = ft_strdup("");
+	}
 }

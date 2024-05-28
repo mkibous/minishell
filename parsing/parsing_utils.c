@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/29 14:54:21 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/05/28 13:23:26 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ int	chek_prev(t_elem *elem)
 {
 	if (elem->prev)
 		elem = elem->prev;
+	else
+		return (1);
 	while (elem)
 	{
 		if (elem->type != WHITE_SPACE)
@@ -82,60 +84,25 @@ int	ft_chek(t_elem *elem)
 	return (0);
 }
 
-char	*ft_get_escape(char c, t_state state)
+void	ft_newstate(t_elem **elem, t_elem **tmp)
 {
-	if (c == 't')
-		return (ft_strdup("\\t"));
-	else if (c == 'b')
-		return (ft_strdup("\\b"));
-	else if (c == 'r')
-		return (ft_strdup("\\r"));
-	else if (c == '\"' && state != IN_QUOTE)
-		return (ft_strdup("\""));
-	else if (c == '\"' && state == IN_QUOTE)
-		return (ft_strdup("\""));
-	else if (c == '\'')
-		return (ft_strdup("\'"));
-	else if (c == '$' && state == IN_QUOTE)
-		return (ft_strdup("\\$"));
-	else if (c == '$' && state != IN_QUOTE)
-		return (ft_strdup("$"));
-	else
-		return (ft_strdup("\\"));
-}
+	char	*str;
 
-void	ft_join(t_elem *elem)
-{
-	t_elem	*tmp;
-	char 	*str;
-
-	while (elem)
+	if ((*elem)->type == WORD)
 	{
-		if (elem->next && (elem->type == WORD))
-		{
-			(1) && (tmp = elem, elem = elem->next);
-			while (elem->next && (elem->type == DOUBLE_QUOTE
-					|| elem->type == QOUTE))
-				elem = elem->next;
-			if (elem->type == WORD)
-			{
-				str = ft_strjoin(tmp->content, elem->content);
-				free(tmp->content);
-				tmp->content = ft_strdup(str);
-				free(str);
-				if(elem->state == IN_QUOTE || tmp->state == IN_QUOTE)
-					tmp->state = IN_QUOTE;
-				if (elem->state == IN_DQUOTE || tmp->state == IN_DQUOTE)
-					tmp->state = IN_DQUOTE;
-				if (elem->next)
-					elem->next->prev = elem->prev;
-				elem->prev->next = elem->next;
-				(1) && (free(elem->content), free(elem), elem = tmp);
-			}
-			else
-				elem = tmp->next;
-		}
-		else
-			elem = elem->next;
+		str = ft_strjoin((*tmp)->content, (*elem)->content);
+		free((*tmp)->content);
+		(*tmp)->content = ft_strdup(str);
+		free(str);
+		if ((*elem)->state == IN_QUOTE || (*tmp)->state == IN_QUOTE)
+			(*tmp)->state = IN_QUOTE;
+		if ((*elem)->state == IN_DQUOTE || (*tmp)->state == IN_DQUOTE)
+			(*tmp)->state = IN_DQUOTE;
+		if ((*elem)->next)
+			(*elem)->next->prev = (*elem)->prev;
+		(*elem)->prev->next = (*elem)->next;
+		(1) && (free((*elem)->content), free((*elem)), (*elem) = (*tmp));
 	}
+	else
+		(*elem) = (*tmp)->next;
 }

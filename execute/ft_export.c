@@ -6,7 +6,7 @@
 /*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 22:42:02 by aitaouss          #+#    #+#             */
-/*   Updated: 2024/03/19 02:50:31 by aitaouss         ###   ########.fr       */
+/*   Updated: 2024/05/28 14:35:56 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,94 +14,114 @@
 
 char	**utils_declare_x(t_cmd *cmd, t_table *table, int i)
 {
-	int		check;
+	int		c;
 	char	*tmp_argv;
-	char	**new_env;
 	char	**split;
 
 	split = ft_split(cmd->argv[i], '=');
-	split[0] = ft_strjoin("declare -x ", split[0]);
-	check = check_if_exist(split[0], table->declare_x, 2);
-	if (check != -1)
+	if (split[0] == NULL)
+		return (table->declare_x);
+	(1) && (tmp_argv = ft_strdup(split[0]), free(split[0]), c = 0);
+	split[0] = ft_strjoin("declare -x ", tmp_argv);
+	c = check_if_exist(split[0], table->declare_x, 2);
+	free(tmp_argv);
+	free_2d(split);
+	if (c != -1)
 	{
 		if (ft_strchr(cmd->argv[i], '=') != 0)
 		{
 			tmp_argv = ft_strjoin("declare -x ", cmd->argv[i]);
-			table->declare_x[check] = ft_strdup(tmp_argv);
+			free(table->declare_x[c]);
+			table->declare_x[c] = ft_strdup(tmp_argv);
+			free(tmp_argv);
 		}
 	}
 	else
-	{
-		tmp_argv = ft_strjoin("declare -x ", cmd->argv[i]);
-		new_env = ft_add_env2(table->declare_x, tmp_argv);
-		table->declare_x = new_env;
-	}
+		utils_util_dec(table, &tmp_argv, i, cmd);
 	return (table->declare_x);
 }
 
 void	export_declare_x(t_table *table, t_cmd *cmd)
 {
 	int		i;
-	char	**new_env;
+	int		test;
+	int		valid;
 
-	if (ft_strlen_2d(cmd->argv) > 2)
-		new_env = (char **)malloc(sizeof(char *)
-				* (ft_strlen_2d(table->env) + ft_strlen_2d(cmd->argv)));
+	valid = 0;
+	test = 0;
 	i = 0;
 	while (cmd->argv[++i])
 	{
-		if (cmd->argv[i][0] == '=' || !ft_isalpha(cmd->argv[i][0]))
+		test = is_alpha_num(cmd->argv[i]);
+		if (test == -1 && check_if_valid(cmd->argv[i]))
+			test = 1;
+		if (ft_strncmp(cmd->argv[i], "_=", 2) != 0 && test != -1)
 		{
-			ft_putstr_fd("export : not a valid identifier\n", 2);
-			table->exit_status = 1;
-			return ;
-		}
-		table->declare_x = utils_declare_x(cmd, table, i);
-	}
-}
-
-void	after_export(t_cmd *cmd, t_table *table, int check)
-{
-	int		i;
-
-	i = 0;
-	while (cmd->argv[++i])
-	{
-		if (cmd->argv[i][0] == '=' || !ft_isalpha(cmd->argv[i][0]))
-		{
-			ft_putstr_fd("export : not a valid identifier\n", 2);
-			table->exit_status = 1;
-			return ;
-		}
-		if (ft_strchr(cmd->argv[i], '='))
-		{
-			check = check_if_exist(cmd->argv[i], table->env, 1);
-			if (check != -1)
-			{
-				table->env[check] = ft_strdup(cmd->argv[i]);
-				check = 0;
-			}
+			if (ft_strchr(cmd->argv[i], '+')
+				&& check_if_valid(cmd->argv[i]) == 1)
+				the_plus_for_declare_x(cmd, i, table);
 			else
-				table->env = ft_add_env2(table->env, cmd->argv[i]);
+				table->declare_x = utils_declare_x(cmd, table, i);
 		}
 	}
 }
 
-void	ft_export(t_cmd *cmd, t_table *table)
+char	*get_the_argv_before_equal(char *str)
 {
 	int		i;
-	int		check;
-	int		flag;
+	char	*tmp;
 
-	check = 0;
-	i = 1;
-	flag = 0;
-	if (cmd->argv[1] == NULL)
+	i = 0;
+	while (str[i] != '=')
+		i++;
+	tmp = (char *)malloc(sizeof(char) * (i + 1));
+	i = 0;
+	while (str[i] != '=')
 	{
-		ft_putstr2d_fd(table->declare_x, 1);
-		ft_putstr_fd("\n", 1);
-		return ;
+		tmp[i] = str[i];
+		i++;
 	}
-	after_export(cmd, table, check);
-	export_declare_x(table, cmd);
+	tmp[i] = '\0';
+	return (tmp);
+}
+
+void	the_plus_for_declare_x(t_cmd *cmd, int i, t_table *table)
+{
+	int		check;
+	char	*tmp;
+	char	*tmp_2;
+	char	*tmp_3;
+	char	**split;
+
+	tmp_2 = NULL;
+	tmp = ft_strdup(cmd->argv[i]);
+	free(cmd->argv[i]);
+	cmd->argv[i] = ft_strjoin("declare -x ", tmp);
+	free(tmp);
+	table->j = len_a_eq(cmd->argv[i]) + 1;
+	tmp_3 = copy_the_str(cmd->argv[i], &table->j, 1);
+	tmp = copy_the_str_without_plus(cmd->argv[i]);
+	split = ft_split(tmp, '=');
+	check = check_if_exist(split[0], table->declare_x, 2);
+	free_2d(split);
+	table->i = i;
+	table->check = check;
+	utils_plus_declare_x(cmd, tmp, tmp_2, tmp_3);
+}
+
+void	the_plus(t_cmd *cmd, int i, t_table *table)
+{
+	int		check;
+	char	*tmp;
+	char	*tmp_2;
+	char	*tmp_3;
+
+	tmp_2 = NULL;
+	table->j = len_a_eq(cmd->argv[i]) + 1;
+	tmp_3 = copy_the_str(cmd->argv[i], &table->j, 1);
+	tmp = copy_the_str_without_plus(cmd->argv[i]);
+	check = check_if_exist(tmp, table->env, 1);
+	table->i = i;
+	table->check = check;
+	utils_plus(cmd, tmp, tmp_2, tmp_3);
 }

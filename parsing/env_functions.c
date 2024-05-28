@@ -3,69 +3,61 @@
 /*                                                        :::      ::::::::   */
 /*   env_functions.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkibous <mkibous@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aitaouss <aitaouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/20 09:44:32 by mkibous           #+#    #+#             */
-/*   Updated: 2024/03/29 22:53:05 by mkibous          ###   ########.fr       */
+/*   Updated: 2024/05/20 18:47:17 by aitaouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-char	*put_env(t_elem *elem, char **env, int last_exit)
+char	*manual_env(char *content, t_table *table, t_vars *vars)
 {
-	int	i;
-	int	len;
-
-	i = 0;
-	len = 0;
-	if (!ft_strncmp(elem->content, "$$", 3))
-		return (ft_itoa((int)elem->pid));
-	if (!ft_strncmp(elem->content, "$?", 3))
-		return (ft_itoa(last_exit));
-	while (env[i])
-	{
-		if (ft_strlen(env[i]) > ft_strlen(elem->content))
-			len = ft_strlen(env[i]);
-		else
-			len = ft_strlen(elem->content);
-		if (i % 2 == 0 && i != 1 && strncmp(elem->content + 1, env[i], len) == 0)
-		{
-			i++;
-			return (strdup(env[i]));
-		}
-		i++;
-	}
-		return (strdup(""));
+	if (!ft_strncmp(content, "$", 2) && (!vars || (vars && vars->closedq == 0
+				&& vars->tmp[0] != '\'' && vars->tmp[0] != '"')))
+		return (strdup("$"));
+	if (!ft_strncmp(content, "$$", 3))
+		return (ft_itoa((int)table->pid));
+	if (!ft_strncmp(content, "$?", 3))
+		return (ft_itoa(table->exit_s));
+	if (!ft_strncmp(content, "$0", 3))
+		return (strdup("minishell"));
+	if (!ft_strncmp(content, "$_", 3))
+		return (strdup(table->last_arg));
+	return (NULL);
 }
 
-void	ft_envr(t_elem *elem, char **env, int last_exit)
+char	*put_env(char *content, char **env, t_table *table, t_vars *vars)
 {
-	int	i;
-	int redir;
+	int		i;
+	int		len;
 	char	*tmp;
 
-	i = 0;
-	redir = 0;
+	(1) && (i = 0, len = 0);
+	tmp = manual_env(content, table, vars);
+	if (tmp != NULL)
+		return (tmp);
+	free(tmp);
+	while (env[i])
+	{
+		if (ft_strlen(env[i]) > ft_strlen(content))
+			len = ft_strlen(env[i]);
+		else
+			len = ft_strlen(content);
+		if (i % 2 == 0 && i != 1 && !strncmp(content + 1, env[i], len))
+			return (i++, strdup(env[i]));
+		i++;
+	}
+	return (strdup(""));
+}
+
+void	ft_escape(t_elem *elem)
+{
+	char	*tmp;
+
 	while (elem)
 	{
-		if (elem->type == REDIR_IN || elem->type == REDIR_OUT
-			|| elem->type == HERE_DOC || elem->type == DREDIR_OUT)
-			redir = 1;
-		if (elem->type == ENV)
-		{
-			elem->type = WORD;
-			tmp = put_env(elem, env, last_exit);
-			free(elem->content);
-			elem->content = strdup(tmp);
-			free(tmp);
-		}
-		if (elem->type == NEW_LINE)
-		{
-			elem->type = WORD;
-			free(elem->content);
-			elem->content = strdup("\\n");
-		}
 		if (elem->content[0] == '\\' && elem->type == WORD
 			&& elem->state == GENERAL)
 		{
@@ -74,17 +66,6 @@ void	ft_envr(t_elem *elem, char **env, int last_exit)
 			elem->content = ft_strdup(tmp);
 			free(tmp);
 		}
-			
-		else if (elem->type == ESCAPE)
-		{
-			elem->type = WORD;
-			tmp = ft_get_escape(elem->content[1], elem->state);
-			free(elem->content);
-			elem->content = strdup(tmp);
-			free(tmp);
-		}
-		if (elem->type == WORD && redir == 1)
-			redir = 0;
 		elem = elem->next;
 	}
 }
@@ -95,16 +76,6 @@ int	ft_count_env(char **env)
 
 	i = 0;
 	while (env[i])
-		i++;
-	return (i);
-}
-
-int	env_len(char *str)
-{
-	int	i;
-
-	i = 0;
-	while (str[i] && str[i] != '=')
 		i++;
 	return (i);
 }
